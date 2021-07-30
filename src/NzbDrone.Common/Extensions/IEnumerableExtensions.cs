@@ -117,5 +117,14 @@ namespace NzbDrone.Common.Extensions
 //
 //            return descending ? source.OrderByDescending(orderByFunc) : source.OrderBy(orderByFunc);
 //        }
+        public static string ConcatToString<TSource>(this IEnumerable<TSource> source, string separator = ", ")
+        {
+            return string.Join(separator, source.Select(x => x.ToString()));
+        }
+
+        public static string ConcatToString<TSource>(this IEnumerable<TSource> source, Func<TSource, string> predicate, string separator = ", ")
+        {
+            return string.Join(separator, source.Select(predicate));
+        }
     }
 }
