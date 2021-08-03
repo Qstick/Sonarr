@@ -8,7 +8,8 @@ using NzbDrone.Core.Tv;
 
 namespace NzbDrone.Core.Notifications
 {
-    public abstract class NotificationBase<TSettings> : INotification where TSettings : IProviderConfig, new()
+    public abstract class NotificationBase<TSettings> : INotification
+        where TSettings : IProviderConfig, new()
     {
         protected const string EPISODE_GRABBED_TITLE = "Episode Grabbed";
         protected const string EPISODE_DOWNLOADED_TITLE = "Episode Downloaded";
@@ -37,37 +38,30 @@ namespace NzbDrone.Core.Notifications
 
         public virtual void OnGrab(GrabMessage grabMessage)
         {
-
         }
 
         public virtual void OnDownload(DownloadMessage message)
         {
-
         }
 
         public virtual void OnRename(Series series, List<RenamedEpisodeFile> renamedFiles)
         {
-
         }
 
         public virtual void OnEpisodeFileDelete(EpisodeDeleteMessage deleteMessage)
         {
-
         }
 
         public virtual void OnSeriesDelete(SeriesDeleteMessage deleteMessage)
         {
-
         }
 
         public virtual void OnHealthIssue(HealthCheck.HealthCheck healthCheck)
         {
-
         }
 
         public virtual void ProcessQueue()
         {
-
         }
 
         public bool SupportsOnGrab => HasConcreteImplementation("OnGrab");
@@ -86,8 +80,10 @@ namespace NzbDrone.Core.Notifications
             return GetType().Name;
         }
 
-        public virtual object RequestAction(string action, IDictionary<string, string> query) { return null; }
-
+        public virtual object RequestAction(string action, IDictionary<string, string> query)
+        {
+            return null;
+        }
 
         private bool HasConcreteImplementation(string methodName)
         {

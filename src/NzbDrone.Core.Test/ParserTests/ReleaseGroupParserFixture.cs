@@ -33,11 +33,12 @@ namespace NzbDrone.Core.Test.ParserTests
         [TestCase("Series.Title.S01E05.The-Aniversary.HDTV-1080p.mkv", null)]
         [TestCase("Series US (2010) S04 (1080p BDRip x265 10bit DTS-HD MA 5 1 - WEM)[TAoE]", null)]
         [TestCase("The.Series.S03E04.2160p.Amazon.WEBRip.DTS-HD.MA.5.1.x264", null)]
-        [TestCase("SomeShow.S20E13.1080p.BluRay.DTS-X.MA.5.1.x264",null)]
-        [TestCase("SomeShow.S20E13.1080p.BluRay.DTS-MA.5.1.x264",null)]
-        [TestCase("SomeShow.S20E13.1080p.BluRay.DTS-ES.5.1.x264",null)]
-        [TestCase("SomeShow.S20E13.1080p.Blu-Ray.DTS-ES.5.1.x264",null)]
+        [TestCase("SomeShow.S20E13.1080p.BluRay.DTS-X.MA.5.1.x264", null)]
+        [TestCase("SomeShow.S20E13.1080p.BluRay.DTS-MA.5.1.x264", null)]
+        [TestCase("SomeShow.S20E13.1080p.BluRay.DTS-ES.5.1.x264", null)]
+        [TestCase("SomeShow.S20E13.1080p.Blu-Ray.DTS-ES.5.1.x264", null)]
         [TestCase("SomeShow.S20E13.1080p.Blu-Ray.DTS-ES.5.1.x264-ROUGH [PublicHD]", "ROUGH")]
+
         //[TestCase("", "")]
         public void should_parse_release_group(string title, string expected)
         {
@@ -55,6 +56,7 @@ namespace NzbDrone.Core.Test.ParserTests
         [TestCase("Series.Title.S02E04.720p.WEBRip.x264-SKGTV English", "SKGTV")]
         [TestCase("Series.Title.S02E04.720p.WEBRip.x264-SKGTV_English", "SKGTV")]
         [TestCase("Series.Title.S02E04.720p.WEBRip.x264-SKGTV.English", "SKGTV")]
+
         //[TestCase("", "")]
         public void should_not_include_language_in_release_group(string title, string expected)
         {
@@ -86,7 +88,7 @@ namespace NzbDrone.Core.Test.ParserTests
         [TestCase("The.Series.Title.S08E08.1080p.BluRay.x264-ROVERS-4P", "ROVERS")]
         [TestCase("Series.Title.S01E02.720p.BluRay.X264-REWARD-4Planet", "REWARD")]
         [TestCase("Series.S01E01.Rites.of.Passage.1080p.BluRay.x264-DON-AlteZachen", "DON")]
-        [TestCase("Series.Title.S04E06.Episode.Name.720p.WEB-DL.DD5.1.H.264-HarrHD-RePACKPOST","HarrHD")]
+        [TestCase("Series.Title.S04E06.Episode.Name.720p.WEB-DL.DD5.1.H.264-HarrHD-RePACKPOST", "HarrHD")]
         public void should_not_include_repost_in_release_group(string title, string expected)
         {
             Parser.Parser.ParseReleaseGroup(title).Should().Be(expected);
@@ -97,6 +99,7 @@ namespace NzbDrone.Core.Test.ParserTests
         [TestCase("[Anime-Koi] Series Title - S01E06 - Guys From Sonarr", "Anime-Koi")]
         [TestCase("[Anime-Koi] Series Title - S01E07 - A High-Grade Sonarr", "Anime-Koi")]
         [TestCase("[Anime-Koi] Series Title 2 - 01 [h264-720p][28D54E2C]", "Anime-Koi")]
+
         //[TestCase("Tokyo.Ghoul.02x01.013.HDTV-720p-Anime-Koi", "Anime-Koi")]
         //[TestCase("", "")]
         public void should_parse_anime_release_groups(string title, string expected)

@@ -312,7 +312,6 @@ namespace NzbDrone.Core.Notifications.Discord
                 var payload = CreatePayload(message);
 
                 _proxy.SendPayload(payload, Settings);
-
             }
             catch (DiscordException ex)
             {

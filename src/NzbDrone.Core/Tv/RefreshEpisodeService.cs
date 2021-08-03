@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using NLog;
@@ -104,7 +104,9 @@ namespace NzbDrone.Core.Tv
             if (failCount != 0)
             {
                 _logger.Info("Finished episode refresh for series: {0}. Successful: {1} - Failed: {2} ",
-                    series.Title, successCount, failCount);
+                    series.Title,
+                    successCount,
+                    failCount);
             }
             else
             {
@@ -122,7 +124,6 @@ namespace NzbDrone.Core.Tv
             var season = seasons.SingleOrDefault(c => c.SeasonNumber == episode.SeasonNumber);
             return season == null || season.Monitored;
         }
-
 
         private void UnmonitorReaddedEpisodes(Series series, List<Episode> episodes, bool hasExisting)
         {
@@ -213,7 +214,10 @@ namespace NzbDrone.Core.Tv
                 {
                     var matchingEpisode = existingEpisodes.FirstOrDefault(e => e.AbsoluteEpisodeNumber == episode.AbsoluteEpisodeNumber);
 
-                    if (matchingEpisode != null) return matchingEpisode;
+                    if (matchingEpisode != null)
+                    {
+                        return matchingEpisode;
+                    }
                 }
             }
 

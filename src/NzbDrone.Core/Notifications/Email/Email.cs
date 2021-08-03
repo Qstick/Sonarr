@@ -16,7 +16,6 @@ namespace NzbDrone.Core.Notifications.Email
 
         public override string Name => "Email";
 
-
         public Email(Logger logger)
         {
             _logger = logger;
@@ -87,7 +86,6 @@ namespace NzbDrone.Core.Notifications.Email
             {
                 Send(email, settings);
                 _logger.Debug("Email sent. Subject: {0}", subject);
-
             }
             catch (Exception ex)
             {
@@ -131,7 +129,6 @@ namespace NzbDrone.Core.Notifications.Email
                 }
 
                 _logger.Debug("Sending to mail server");
-
 
                 client.Send(email);
 

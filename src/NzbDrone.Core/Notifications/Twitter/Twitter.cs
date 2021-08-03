@@ -8,7 +8,6 @@ namespace NzbDrone.Core.Notifications.Twitter
 {
     public class Twitter : NotificationBase<TwitterSettings>
     {
-
         private readonly ITwitterService _twitterService;
 
         public Twitter(ITwitterService twitterService)
@@ -82,6 +81,7 @@ namespace NzbDrone.Core.Notifications.Twitter
                     accessTokenSecret = oauthToken.AccessTokenSecret
                 };
             }
+
             return new { };
         }
 
@@ -94,5 +94,4 @@ namespace NzbDrone.Core.Notifications.Twitter
             return new ValidationResult(failures);
         }
     }
-
 }

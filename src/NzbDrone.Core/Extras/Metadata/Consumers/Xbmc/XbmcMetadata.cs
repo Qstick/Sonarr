@@ -67,7 +67,10 @@ namespace NzbDrone.Core.Extras.Metadata.Consumers.Xbmc
         {
             var filename = Path.GetFileName(path);
 
-            if (filename == null) return null;
+            if (filename == null)
+            {
+                return null;
+            }
 
             var metadata = new MetadataFile
             {
@@ -95,12 +98,10 @@ namespace NzbDrone.Core.Extras.Metadata.Consumers.Xbmc
                 {
                     metadata.SeasonNumber = 0;
                 }
-
                 else if (int.TryParse(seasonNumberMatch, out seasonNumber))
                 {
                     metadata.SeasonNumber = seasonNumber;
                 }
-
                 else
                 {
                     return null;
@@ -270,7 +271,7 @@ namespace NzbDrone.Core.Extras.Metadata.Consumers.Xbmc
                         details.Add(new XElement("displayseason", episode.AiredBeforeSeasonNumber));
                         details.Add(new XElement("displayepisode", episode.AiredBeforeEpisodeNumber ?? -1));
                     }
-                    
+
                     var uniqueId = new XElement("uniqueid", episode.Id);
                     uniqueId.SetAttributeValue("type", "sonarr");
                     uniqueId.SetAttributeValue("default", true);
@@ -280,7 +281,6 @@ namespace NzbDrone.Core.Extras.Metadata.Consumers.Xbmc
                     {
                         details.Add(new XElement("thumb"));
                     }
-
                     else
                     {
                         details.Add(new XElement("thumb", image.Url));

@@ -45,7 +45,10 @@ namespace Sonarr.Api.V3.Episodes
     {
         public static EpisodeResource ToResource(this Episode model)
         {
-            if (model == null) return null;
+            if (model == null)
+            {
+                return null;
+            }
 
             return new EpisodeResource
             {
@@ -59,6 +62,7 @@ namespace Sonarr.Api.V3.Episodes
                 AirDate = model.AirDate,
                 AirDateUtc = model.AirDateUtc,
                 Overview = model.Overview,
+
                 //EpisodeFile
 
                 HasFile = model.HasFile,
@@ -69,13 +73,17 @@ namespace Sonarr.Api.V3.Episodes
                 SceneSeasonNumber = model.SceneSeasonNumber,
                 UnverifiedSceneNumbering = model.UnverifiedSceneNumbering,
                 SeriesTitle = model.SeriesTitle,
+
                 //Series = model.Series.MapToResource(),
             };
         }
 
         public static List<EpisodeResource> ToResource(this IEnumerable<Episode> models)
         {
-            if (models == null) return null;
+            if (models == null)
+            {
+                return null;
+            }
 
             return models.Select(ToResource).ToList();
         }

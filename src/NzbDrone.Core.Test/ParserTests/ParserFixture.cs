@@ -7,11 +7,9 @@ using NzbDrone.Core.Test.Framework;
 
 namespace NzbDrone.Core.Test.ParserTests
 {
-
     [TestFixture]
     public class ParserFixture : CoreTest
     {
-
         [TestCase("Series Title - 4x05 - Title", "seriestitle")]
         [TestCase("Series & Title - 4x05 - Title", "seriestitle")]
         [TestCase("Bad Format", "badformat")]

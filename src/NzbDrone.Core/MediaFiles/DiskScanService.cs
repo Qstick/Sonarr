@@ -108,7 +108,7 @@ namespace NzbDrone.Core.MediaFiles
                     else
                     {
                         _logger.Debug("Creating missing series folder: {0}", series.Path);
-                        
+
                         _diskProvider.CreateFolder(series.Path);
                         SetPermissions(series.Path);
                     }
@@ -150,7 +150,10 @@ namespace NzbDrone.Core.MediaFiles
                 var path = Path.Combine(series.Path, file.RelativePath);
                 var fileSize = _diskProvider.GetFileSize(path);
 
-                if (file.Size == fileSize) continue;
+                if (file.Size == fileSize)
+                {
+                    continue;
+                }
 
                 file.Size = fileSize;
 
@@ -262,7 +265,6 @@ namespace NzbDrone.Core.MediaFiles
                 var series = _seriesService.GetSeries(message.SeriesId.Value);
                 Scan(series);
             }
-
             else
             {
                 var allSeries = _seriesService.GetAllSeries();
