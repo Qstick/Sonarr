@@ -33,6 +33,7 @@ namespace NzbDrone.Core.Notifications.PushBullet
         {
             _proxy.SendNotification(EPISODE_DELETED_TITLE, deleteMessage.Message, Settings);
         }
+
         public override void OnSeriesDelete(SeriesDeleteMessage deleteMessage)
         {
             _proxy.SendNotification(SERIES_DELETED_TITLE, deleteMessage.Message, Settings);
@@ -77,7 +78,7 @@ namespace NzbDrone.Core.Notifications.PushBullet
                                                              id = d.Id,
                                                              name = d.Nickname
                                                          })
-                };
+                       };
             }
 
             return new { };

@@ -7,7 +7,7 @@ namespace NzbDrone.Core.Notifications.Pushover
     public class Pushover : NotificationBase<PushoverSettings>
     {
         private readonly IPushoverProxy _proxy;
-        
+
         public Pushover(IPushoverProxy proxy)
         {
             _proxy = proxy;
@@ -30,7 +30,7 @@ namespace NzbDrone.Core.Notifications.Pushover
         {
             _proxy.SendNotification(EPISODE_DELETED_TITLE, deleteMessage.Message, Settings);
         }
-        
+
         public override void OnSeriesDelete(SeriesDeleteMessage deleteMessage)
         {
             _proxy.SendNotification(SERIES_DELETED_TITLE, deleteMessage.Message, Settings);

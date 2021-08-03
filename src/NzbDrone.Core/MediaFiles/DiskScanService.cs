@@ -101,7 +101,7 @@ namespace NzbDrone.Core.MediaFiles
                     else
                     {
                         _logger.Debug("Creating missing series folder: {0}", series.Path);
-                        
+
                         _diskProvider.CreateFolder(series.Path);
                         SetPermissions(series.Path);
                     }
@@ -223,7 +223,6 @@ namespace NzbDrone.Core.MediaFiles
                 var series = _seriesService.GetSeries(message.SeriesId.Value);
                 Scan(series);
             }
-
             else
             {
                 var allSeries = _seriesService.GetAllSeries();

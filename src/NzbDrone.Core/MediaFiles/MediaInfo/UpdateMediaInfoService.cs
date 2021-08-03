@@ -1,12 +1,12 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using NLog;
 using NzbDrone.Common.Disk;
+using NzbDrone.Core.Configuration;
 using NzbDrone.Core.MediaFiles.Events;
 using NzbDrone.Core.Messaging.Events;
 using NzbDrone.Core.Tv;
-using System.Collections.Generic;
-using System.Linq;
-using NzbDrone.Core.Configuration;
 
 namespace NzbDrone.Core.MediaFiles.MediaInfo
 {
@@ -62,6 +62,7 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
                 _logger.Debug("MediaInfo is disabled");
                 return;
             }
+
             UpdateMediaInfo(episodeFile, series);
         }
 

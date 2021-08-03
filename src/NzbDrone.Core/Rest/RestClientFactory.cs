@@ -1,6 +1,6 @@
-﻿using RestSharp;
-using NzbDrone.Common.EnvironmentInfo;
+﻿using NzbDrone.Common.EnvironmentInfo;
 using NzbDrone.Common.Http.Proxy;
+using RestSharp;
 
 namespace NzbDrone.Core.Rest
 {

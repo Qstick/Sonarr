@@ -35,7 +35,7 @@ namespace NzbDrone.Core.Test.MediaFiles
                   .Returns(_videoFiles);
 
             Mocker.GetMock<IDiskScanService>().Setup(c => c.FilterPaths(It.IsAny<string>(), It.IsAny<IEnumerable<string>>()))
-                  .Returns<string, IEnumerable<string>>((b,s) => s.ToList());
+                  .Returns<string, IEnumerable<string>>((b, s) => s.ToList());
 
             Mocker.GetMock<IDiskProvider>().Setup(c => c.GetDirectories(It.IsAny<string>()))
                   .Returns(_subFolders);
@@ -46,7 +46,6 @@ namespace NzbDrone.Core.Test.MediaFiles
             Mocker.GetMock<IImportApprovedEpisodes>()
                   .Setup(s => s.Import(It.IsAny<List<ImportDecision>>(), true, null, ImportMode.Auto))
                   .Returns(new List<ImportResult>());
-
 
             var downloadItem = Builder<DownloadClientItem>.CreateNew()
                 .With(v => v.DownloadId = "sab1")
@@ -286,7 +285,7 @@ namespace NzbDrone.Core.Test.MediaFiles
 
             Mocker.GetMock<IDiskProvider>()
                   .Setup(s => s.GetFiles(It.IsAny<string>(), SearchOption.AllDirectories))
-                  .Returns(new []{ _videoFiles.First().Replace(".ext", ".rar") });
+                  .Returns(new[] { _videoFiles.First().Replace(".ext", ".rar") });
 
             Mocker.GetMock<IDiskProvider>()
                   .Setup(s => s.GetFileSize(It.IsAny<string>()))
@@ -318,7 +317,6 @@ namespace NzbDrone.Core.Test.MediaFiles
 
             var imported = new List<ImportDecision>();
             imported.Add(new ImportDecision(localEpisode));
-
 
             Subject.ProcessPath(fileName);
 

@@ -2,9 +2,9 @@
 using System.IO;
 using System.Linq;
 using FluentValidation.Results;
-using NzbDrone.Core.Tv;
 using NzbDrone.Common.Extensions;
 using NzbDrone.Core.MediaFiles;
+using NzbDrone.Core.Tv;
 using NzbDrone.Core.Validation;
 
 namespace NzbDrone.Core.Notifications.Webhook
@@ -59,8 +59,7 @@ namespace NzbDrone.Core.Notifications.Webhook
                                                                         {
                                                                             Path = Path.Combine(message.Series.Path,
                                                                                 x.RelativePath)
-                                                                        }
-                );
+                                                                        });
             }
 
             _proxy.SendWebhook(payload, Settings);
@@ -86,7 +85,7 @@ namespace NzbDrone.Core.Notifications.Webhook
                 Series = new WebhookSeries(deleteMessage.Series),
                 Episodes = deleteMessage.EpisodeFile.Episodes.Value.ConvertAll(x => new WebhookEpisode(x)),
                 EpisodeFile = deleteMessage.EpisodeFile,
-                DeleteReason = deleteMessage.Reason                
+                DeleteReason = deleteMessage.Reason
             };
 
             _proxy.SendWebhook(payload, Settings);
@@ -143,7 +142,8 @@ namespace NzbDrone.Core.Notifications.Webhook
                             Path = "C:\\testpath",
                             TvdbId = 1234
                         },
-                        Episodes = new List<WebhookEpisode>() {
+                        Episodes = new List<WebhookEpisode>()
+                        {
                             new WebhookEpisode()
                             {
                                 Id = 123,

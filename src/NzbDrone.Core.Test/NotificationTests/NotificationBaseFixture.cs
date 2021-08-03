@@ -15,7 +15,7 @@ namespace NzbDrone.Core.Test.NotificationTests
     [TestFixture]
     public class NotificationBaseFixture : TestBase
     {
-        class TestSetting : IProviderConfig
+        private class TestSetting : IProviderConfig
         {
             public NzbDroneValidationResult Validate()
             {
@@ -23,11 +23,10 @@ namespace NzbDrone.Core.Test.NotificationTests
             }
         }
 
-        class TestNotificationWithOnDownload : NotificationBase<TestSetting>
+        private class TestNotificationWithOnDownload : NotificationBase<TestSetting>
         {
             public override string Name => "TestNotification";
             public override string Link => "";
-
 
             public override ValidationResult Test()
             {
@@ -38,14 +37,12 @@ namespace NzbDrone.Core.Test.NotificationTests
             {
                 TestLogger.Info("OnDownload was called");
             }
-
         }
 
-        class TestNotificationWithAllEvents : NotificationBase<TestSetting>
+        private class TestNotificationWithAllEvents : NotificationBase<TestSetting>
         {
             public override string Name => "TestNotification";
             public override string Link => "";
-
 
             public override ValidationResult Test()
             {
@@ -66,33 +63,32 @@ namespace NzbDrone.Core.Test.NotificationTests
             {
                 TestLogger.Info("OnRename was called");
             }
+
             public override void OnEpisodeFileDelete(EpisodeDeleteMessage message)
             {
                 TestLogger.Info("Episode OnDelete was called");
             }
+
             public override void OnSeriesDelete(SeriesDeleteMessage deleteMessage)
             {
                 TestLogger.Info("Series OnDelete was called");
             }
+
             public override void OnHealthIssue(NzbDrone.Core.HealthCheck.HealthCheck artist)
             {
                 TestLogger.Info("OnHealthIssue was called");
             }
-
         }
 
-        class TestNotificationWithNoEvents : NotificationBase<TestSetting>
+        private class TestNotificationWithNoEvents : NotificationBase<TestSetting>
         {
             public override string Name => "TestNotification";
             public override string Link => "";
-
 
             public override ValidationResult Test()
             {
                 throw new NotImplementedException();
             }
-
-          
         }
 
         [Test]
@@ -122,7 +118,6 @@ namespace NzbDrone.Core.Test.NotificationTests
             notification.SupportsOnHealthIssue.Should().BeTrue();
         }
 
-
         [Test]
         public void should_support_none_if_none_are_implemented()
         {
@@ -138,5 +133,4 @@ namespace NzbDrone.Core.Test.NotificationTests
             notification.SupportsOnHealthIssue.Should().BeFalse();
         }
     }
-
 }

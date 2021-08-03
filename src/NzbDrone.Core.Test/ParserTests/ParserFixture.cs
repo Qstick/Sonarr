@@ -7,11 +7,9 @@ using NzbDrone.Core.Test.Framework;
 
 namespace NzbDrone.Core.Test.ParserTests
 {
-
     [TestFixture]
     public class ParserFixture : CoreTest
     {
-
         [TestCase("Series Title - 4x05 - Title", "seriestitle")]
         [TestCase("Series & Title - 4x05 - Title", "seriestitle")]
         [TestCase("Bad Format", "badformat")]
@@ -62,9 +60,7 @@ namespace NzbDrone.Core.Test.ParserTests
             Parser.Parser.ParseTitle(title).Quality.Quality.Should().NotBe(Quality.Unknown);
             Parser.Parser.ParseTitle(title).Quality.SourceDetectionSource.Should().Be(QualityDetectionSource.Extension);
             Parser.Parser.ParseTitle(title).Quality.ResolutionDetectionSource.Should().Be(QualityDetectionSource.Extension);
-
         }
-
 
         [TestCase("Series.S01E02.Chained.Title.mkv", "Series.S01E02.Chained.Title")]
         public void should_parse_releasetitle(string path, string releaseTitle)

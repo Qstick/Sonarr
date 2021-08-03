@@ -69,6 +69,7 @@ dotnet_diagnostic.SA1406.severity = suggestion
 dotnet_diagnostic.SA1410.severity = suggestion
 dotnet_diagnostic.SA1411.severity = suggestion
 dotnet_diagnostic.SA1413.severity = none
+dotnet_diagnostic.SA1512.severity = none
 dotnet_diagnostic.SA1516.severity = none
 dotnet_diagnostic.SA1600.severity = none
 dotnet_diagnostic.SA1601.severity = none
@@ -259,8 +260,6 @@ dotnet_diagnostic.CA5385.severity = suggestion
 dotnet_diagnostic.CA5392.severity = suggestion
 dotnet_diagnostic.CA5394.severity = suggestion
 dotnet_diagnostic.CA5397.severity = suggestion
-
-
 
 [*.{js,html,js,hbs,less,css}]
 charset = utf-8

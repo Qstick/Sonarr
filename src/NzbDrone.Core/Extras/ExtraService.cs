@@ -52,7 +52,7 @@ namespace NzbDrone.Core.Extras
         public void ImportEpisode(LocalEpisode localEpisode, EpisodeFile episodeFile, bool isReadOnly)
         {
             ImportExtraFiles(localEpisode, episodeFile, isReadOnly);
-            
+
             CreateAfterEpisodeImport(localEpisode.Series, episodeFile);
         }
 

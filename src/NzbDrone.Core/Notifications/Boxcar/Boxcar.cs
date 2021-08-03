@@ -23,7 +23,7 @@ namespace NzbDrone.Core.Notifications.Boxcar
 
         public override void OnDownload(DownloadMessage message)
         {
-            _proxy.SendNotification(EPISODE_DOWNLOADED_TITLE , message.Message, Settings);
+            _proxy.SendNotification(EPISODE_DOWNLOADED_TITLE, message.Message, Settings);
         }
 
         public override void OnEpisodeFileDelete(EpisodeDeleteMessage deleteMessage)

@@ -103,7 +103,6 @@ namespace NzbDrone.Core.Extras.Subtitles
                 _mediaFileAttributeService.SetFilePermissions(path);
                 _subtitleFileService.Upsert(subtitleFile);
 
-
                 return subtitleFile;
             }
 
