@@ -1,4 +1,5 @@
 using System;
+using System.Data;
 using FluentMigrator;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
@@ -11,30 +12,22 @@ namespace NzbDrone.Core.Test.Framework
     public abstract class MigrationTest<TMigration> : DbTest
         where TMigration : NzbDroneMigrationBase
     {
-        protected long MigrationVersion
+        protected long MigrationVersion => ((MigrationAttribute)Attribute.GetCustomAttribute(typeof(TMigration), typeof(MigrationAttribute))).Version;
+
+        [SetUp]
+        public override void SetupDb()
         {
-            get
-            {
-                var attrib = (MigrationAttribute)Attribute.GetCustomAttribute(typeof(TMigration), typeof(MigrationAttribute));
-                return attrib.Version;
-            }
+            SetupContainer();
         }
 
         protected virtual IDirectDataMapper WithMigrationTestDb(Action<TMigration> beforeMigration = null)
         {
-            var db = WithTestDb(new MigrationContext(MigrationType, MigrationVersion)
-            {
-                BeforeMigration = m =>
-                {
-                    var migration = m as TMigration;
-                    if (beforeMigration != null && migration != null)
-                    {
-                        beforeMigration(migration);
-                    }
-                }
-            });
+            return WithMigrationAction(beforeMigration).GetDirectDataMapper();
+        }
 
-            return db.GetDirectDataMapper();
+        protected virtual IDbConnection WithDapperMigrationTestDb(Action<TMigration> beforeMigration = null)
+        {
+            return WithMigrationAction(beforeMigration).OpenConnection();
         }
 
         protected override void SetupLogging()
@@ -42,10 +35,19 @@ namespace NzbDrone.Core.Test.Framework
             Mocker.SetConstant<ILoggerProvider>(Mocker.Resolve<MigrationLoggerProvider>());
         }
 
-        [SetUp]
-        public override void SetupDb()
+        private ITestDatabase WithMigrationAction(Action<TMigration> beforeMigration = null)
         {
-            SetupContainer();
+            return WithTestDb(new MigrationContext(MigrationType, MigrationVersion)
+            {
+                BeforeMigration = m =>
+                {
+                    var migration = m as TMigration;
+                    if (beforeMigration != null && migration is TMigration)
+                    {
+                        beforeMigration(migration);
+                    }
+                }
+            });
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -183,7 +183,7 @@ namespace NzbDrone.Core.Extras
             foreach (var episodeFile in episodeFiles)
             {
                 var localEpisodeFile = episodeFile;
-                episodeFile.Episodes = new LazyList<Episode>(episodes.Where(e => e.EpisodeFileId == localEpisodeFile.Id));
+                episodeFile.Episodes = new List<Episode>(episodes.Where(e => e.EpisodeFileId == localEpisodeFile.Id));
             }
 
             return episodeFiles;
