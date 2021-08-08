@@ -21,27 +21,20 @@ ProgressEnd()
 
 UpdateVersionNumber()
 {
-    if [ "$SONARR_VERSION" != "" ]; then
-        echo "Updating version info to: $SONARR_VERSION"
-        sed -i'' -e "s/<AssemblyVersion>[0-9.*]\+<\/AssemblyVersion>/<AssemblyVersion>$SONARR_VERSION<\/AssemblyVersion>/g" src/Directory.Build.props
-        sed -i'' -e "s/<AssemblyConfiguration>[\$()A-Za-z-]\+<\/AssemblyConfiguration>/<AssemblyConfiguration>${BRANCH}<\/AssemblyConfiguration>/g" src/Directory.Build.props
-        sed -i'' -e "s/<string>10.0.0.0<\/string>/<string>$SONARR_VERSION<\/string>/g" distribution/macOS/Sonarr.app/Contents/Info.plist
+    if [ "$SONARRVERSION" != "" ]; then
+        echo "Updating Version Info"
+        sed -i'' -e "s/<AssemblyVersion>[0-9.*]\+<\/AssemblyVersion>/<AssemblyVersion>$SONARRVERSION<\/AssemblyVersion>/g" src/Directory.Build.props
+        sed -i'' -e "s/<AssemblyConfiguration>[\$()A-Za-z-]\+<\/AssemblyConfiguration>/<AssemblyConfiguration>${BUILD_SOURCEBRANCHNAME}<\/AssemblyConfiguration>/g" src/Directory.Build.props
+        sed -i'' -e "s/<string>10.0.0.0<\/string>/<string>$SONARRVERSION<\/string>/g" distribution/macOS/Sonarr.app/Contents/Info.plist
     fi
 }
 
-EnableExtraPlatformsInSDK()
+EnableBsdSupport()
 {
-    BUNDLEDVERSIONS="${SDK_PATH}/Microsoft.NETCoreSdk.BundledVersions.props"
-    if grep -q freebsd-x64 "$BUNDLEDVERSIONS"; then
-        echo "Extra platforms already enabled"
-    else
-        echo "Enabling extra platform support"
-        sed -i.ORI 's/osx-x64/osx-x64;freebsd-x64/' "$BUNDLEDVERSIONS"
-    fi
-}
+    #todo enable sdk with
+    #SDK_PATH=$(dotnet --list-sdks | grep -P '5\.\d\.\d+' | head -1 | sed 's/\(5\.[0-9]*\.[0-9]*\).*\[\(.*\)\]/\2\/\1/g')
+    # BUNDLED_VERSIONS="${SDK_PATH}/Microsoft.NETCoreSdk.BundledVersions.props"
 
-EnableExtraPlatforms()
-{
     if grep -qv freebsd-x64 src/Directory.Build.props; then
         sed -i'' -e "s^<RuntimeIdentifiers>\(.*\)</RuntimeIdentifiers>^<RuntimeIdentifiers>\1;freebsd-x64</RuntimeIdentifiers>^g" src/Directory.Build.props
     fi
@@ -110,11 +103,7 @@ PackageFiles()
     mkdir -p $folder
     cp -r $outputFolder/$framework/$runtime/publish/* $folder
     cp -r $outputFolder/Sonarr.Update/$framework/$runtime/publish $folder/Sonarr.Update
-    
-    if [ "$FRONTEND" = "YES" ];
-    then
-        cp -r $outputFolder/UI $folder
-    fi
+    cp -r $outputFolder/UI $folder
 
     echo "Adding LICENSE"
     cp LICENSE.md $folder
@@ -239,6 +228,7 @@ Package()
             ;;
         osx)
             PackageMacOS "$framework" "$runtime"
+            PackageMacOSApp "$framework" "$runtime"
             ;;
     esac
 }
@@ -283,26 +273,19 @@ UploadArtifacts()
     for dir in $artifactsFolder/*
     do
         local runtime=$(basename "$dir")
+        local extension="tar.gz"
 
-        echo "##teamcity[publishArtifacts '$artifactsFolder/$runtime/$framework/** => Sonarr.$BRANCH.$SONARR_VERSION.$runtime.zip']"
+        if [[ "$runtime" =~ win-|-app ]]; then
+            extension="zip"
+        fi
+
+        echo "##teamcity[publishArtifacts '$artifactsFolder/$runtime/$framework/** => Sonarr.$BRANCH.$BUILD_NUMBER.$runtime.$extension']"
     done
 
-    # Debian Package / Windows installer / macOS app
+    # Debian Package
     echo "##teamcity[publishArtifacts 'distribution/** => distribution.zip']"
 
     ProgressEnd 'Publishing Artifacts'
-}
-
-UploadUIArtifacts()
-{
-    local framework="$1"
-
-    ProgressStart 'Publishing UI Artifacts'
-
-    # UI folder
-    echo "##teamcity[publishArtifacts '$outputFolder/UI/** => UI.zip']"
-
-    ProgressEnd 'Publishing UI Artifacts'
 }
 
 # Use mono or .net depending on OS
@@ -325,8 +308,7 @@ if [ $# -eq 0 ]; then
     FRONTEND=YES
     PACKAGES=YES
     LINT=YES
-    ENABLE_EXTRA_PLATFORMS=NO
-    ENABLE_EXTRA_PLATFORMS_IN_SDK=NO
+    ENABLE_BSD=NO
 fi
 
 while [[ $# -gt 0 ]]
@@ -338,12 +320,8 @@ case $key in
         BACKEND=YES
         shift # past argument
         ;;
-    --enable-bsd|--enable-extra-platforms)
-        ENABLE_EXTRA_PLATFORMS=YES
-        shift # past argument
-        ;;
-    --enable-extra-platforms-in-sdk)
-        ENABLE_EXTRA_PLATFORMS_IN_SDK=YES
+    --enable-bsd)
+        ENABLE_BSD=YES
         shift # past argument
         ;;
     -r|--runtime)
@@ -383,21 +361,14 @@ esac
 done
 set -- "${POSITIONAL[@]}" # restore positional parameters
 
-if [ "$ENABLE_EXTRA_PLATFORMS_IN_SDK" = "YES" ];
-then
-    EnableExtraPlatformsInSDK
-fi
-
 if [ "$BACKEND" = "YES" ];
 then
     UpdateVersionNumber
-    if [ "$ENABLE_EXTRA_PLATFORMS" = "YES" ];
+    if [ "$ENABLE_BSD" = "YES" ];
     then
-        EnableExtraPlatforms
+        EnableBsdSupport
     fi
-
     Build
-
     if [[ -z "$RID" || -z "$FRAMEWORK" ]];
     then
         PackageTests "net6.0" "win-x64"
@@ -405,7 +376,7 @@ then
         PackageTests "net6.0" "linux-x64"
         PackageTests "net6.0" "linux-musl-x64"
         PackageTests "net6.0" "osx-x64"
-        if [ "$ENABLE_EXTRA_PLATFORMS" = "YES" ];
+        if [ "$ENABLE_BSD" = "YES" ];
         then
             PackageTests "net6.0" "freebsd-x64"
         fi
@@ -419,14 +390,17 @@ fi
 if [ "$FRONTEND" = "YES" ];
 then
     YarnInstall
+    RunWebpack
+fi
 
-    if [ "$LINT" = "YES" ];
+if [ "$LINT" = "YES" ];
+then
+    if [ -z "$FRONTEND" ];
     then
-        LintUI
+        YarnInstall
     fi
 
-    RunWebpack
-    UploadUIArtifacts
+    LintUI
 fi
 
 if [ "$PACKAGES" = "YES" ];
@@ -444,7 +418,7 @@ then
         Package "net6.0" "linux-arm"
         Package "net6.0" "osx-x64"
         Package "net6.0" "osx-arm64"
-        if [ "$ENABLE_EXTRA_PLATFORMS" = "YES" ];
+        if [ "$ENABLE_BSD" = "YES" ];
         then
             Package "net6.0" "freebsd-x64"
         fi
