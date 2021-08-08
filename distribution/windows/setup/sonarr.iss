@@ -6,10 +6,10 @@
 #define AppURL "https://sonarr.tv/"
 #define ForumsURL "https://forums.sonarr.tv/"
 #define AppExeName "Sonarr.exe"
-#define BuildNumber "3.0"
-#define BranchName GetEnv('BRANCH')
-#define Framework GetEnv('FRAMEWORK')
-#define Runtime GetEnv('RUNTIME')
+#define BaseVersion GetEnv('MAJORVERSION')
+#define BuildNumber GetEnv('MINORVERSION')
+#define BuildVersion GetEnv('SONARRVERSION')
+#define BranchName GetEnv('BUILD_SOURCEBRANCHNAME')
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
@@ -17,7 +17,7 @@
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId={{56C1065D-3523-4025-B76D-6F73F67F7F71}
 AppName={#AppName}
-AppVersion={#BuildNumber}
+AppVersion={#BaseVersion}
 AppPublisher={#AppPublisher}
 AppPublisherURL={#AppURL}
 AppSupportURL={#ForumsURL}
@@ -27,7 +27,7 @@ DefaultDirName={commonappdata}\Sonarr\bin
 DisableDirPage=yes
 DefaultGroupName={#AppName}
 DisableProgramGroupPage=yes
-OutputBaseFilename=Sonarr.{#BranchName}.{#BuildNumber}.windows.{#Framework}
+OutputBaseFilename=Sonarr.{#BranchName}.{#BuildVersion}.windows.{#Framework}
 SolidCompression=yes
 AppCopyright=Creative Commons 3.0 License
 AllowUNCPath=False
@@ -36,7 +36,7 @@ DisableReadyPage=True
 CompressionThreads=2
 Compression=lzma2/normal
 AppContact={#ForumsURL}
-VersionInfoVersion={#BuildNumber}
+VersionInfoVersion={#BaseVersion}.{#BuildNumber}
 SetupLogging=yes
 OutputDir=output
 
