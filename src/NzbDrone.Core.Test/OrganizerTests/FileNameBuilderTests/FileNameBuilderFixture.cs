@@ -18,6 +18,7 @@ using NzbDrone.Test.Common;
 
 namespace NzbDrone.Core.Test.OrganizerTests.FileNameBuilderTests
 {
+    [Platform(Exclude = "Win")]
     [TestFixture]
     public class FileNameBuilderFixture : CoreTest<FileNameBuilder>
     {
