@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using NUnit.Framework;
 
 namespace NzbDrone.Integration.Test.ApiTests
@@ -6,7 +6,7 @@ namespace NzbDrone.Integration.Test.ApiTests
     [TestFixture]
     public class SeriesLookupFixture : IntegrationTest
     {
-        [TestCase("archer", "Archer (2009)")]
+        [TestCase("archer", "Archer")]
         [TestCase("90210", "90210")]
         public void lookup_new_series_by_title(string term, string title)
         {

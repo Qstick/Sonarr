@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using Moq;
 using NUnit.Framework;
 using NzbDrone.Core.MetadataSource.SkyHook;
@@ -28,9 +28,9 @@ namespace NzbDrone.Core.Test.MetadataSource.SkyHook
         [TestCase("M*A*S*H", "M*A*S*H")]
 
         //[TestCase("imdb:tt0436992", "Doctor Who (2005)")]
-        [TestCase("tvdb:78804", "Doctor Who (2005)")]
-        [TestCase("tvdbid:78804", "Doctor Who (2005)")]
-        [TestCase("tvdbid: 78804 ", "Doctor Who (2005)")]
+        [TestCase("tvdb:78804", "Doctor Who")]
+        [TestCase("tvdbid:78804", "Doctor Who")]
+        [TestCase("tvdbid: 78804 ", "Doctor Who")]
         public void successful_search(string title, string expected)
         {
             var result = Subject.SearchForNewSeries(title);

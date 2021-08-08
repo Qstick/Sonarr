@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
@@ -23,7 +23,7 @@ namespace NzbDrone.Core.Test.MetadataSource.SkyHook
         }
 
         [TestCase(75978, "Family Guy")]
-        [TestCase(83462, "Castle (2009)")]
+        [TestCase(83462, "Castle")]
         [TestCase(266189, "The Blacklist")]
         public void should_be_able_to_get_series_detail(int tvdbId, string title)
         {
@@ -41,14 +41,6 @@ namespace NzbDrone.Core.Test.MetadataSource.SkyHook
             Assert.Throws<SeriesNotFoundException>(() => Subject.GetSeriesInfo(int.MaxValue));
         }
 
-        [Test]
-        public void should_not_have_period_at_start_of_title_slug()
-        {
-            var details = Subject.GetSeriesInfo(79099);
-
-            details.Item1.TitleSlug.Should().Be("dothack");
-        }
-
         private void ValidateSeries(Series series)
         {
             series.Should().NotBeNull();
@@ -56,7 +48,6 @@ namespace NzbDrone.Core.Test.MetadataSource.SkyHook
             series.CleanTitle.Should().Be(Parser.Parser.CleanSeriesTitle(series.Title));
             series.SortTitle.Should().Be(SeriesTitleNormalizer.Normalize(series.Title, series.TvdbId));
             series.Overview.Should().NotBeNullOrWhiteSpace();
-            series.AirTime.Should().NotBeNullOrWhiteSpace();
             series.FirstAired.Should().HaveValue();
             series.FirstAired.Value.Kind.Should().Be(DateTimeKind.Utc);
             series.Images.Should().NotBeEmpty();

@@ -96,7 +96,6 @@ namespace Sonarr.Api.V3.Series
                        //NextAiring
                        //PreviousAiring
                        Network = model.Network,
-                       AirTime = model.AirTime,
                        Images = model.Images,
 
                        Seasons = model.Seasons.ToResource(includeSeasonImages),
@@ -158,7 +157,6 @@ namespace Sonarr.Api.V3.Series
                        //NextAiring
                        //PreviousAiring
                        Network = resource.Network,
-                       AirTime = resource.AirTime,
                        Images = resource.Images,
 
                        Seasons = resource.Seasons?.ToModel() ?? new List<Season>(),

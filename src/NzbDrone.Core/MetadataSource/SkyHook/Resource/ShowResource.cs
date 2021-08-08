@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace NzbDrone.Core.MetadataSource.SkyHook.Resource
 {
@@ -18,7 +18,7 @@ namespace NzbDrone.Core.MetadataSource.SkyHook.Resource
         public string Overview { get; set; }
 
         //public string Language { get; set; }
-        public string Slug { get; set; }
+        public string TitleSlug { get; set; }
         public string FirstAired { get; set; }
         public int? TvRageId { get; set; }
         public int? TvMazeId { get; set; }
@@ -35,7 +35,7 @@ namespace NzbDrone.Core.MetadataSource.SkyHook.Resource
 
         public string ContentRating { get; set; }
 
-        public RatingResource Rating { get; set; }
+        public RatingResource Ratings { get; set; }
 
         public List<ImageResource> Images { get; set; }
         public List<SeasonResource> Seasons { get; set; }

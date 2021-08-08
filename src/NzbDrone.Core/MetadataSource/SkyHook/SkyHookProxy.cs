@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -40,14 +40,14 @@ namespace NzbDrone.Core.MetadataSource.SkyHook
         public Tuple<Series, List<Episode>> GetSeriesInfo(int tvdbSeriesId)
         {
             var httpRequest = _requestBuilder.Create()
-                                             .SetSegment("route", "shows")
+                                             .SetSegment("route", "series/tvdb")
                                              .Resource(tvdbSeriesId.ToString())
                                              .Build();
 
             httpRequest.AllowAutoRedirect = true;
             httpRequest.SuppressHttpError = true;
 
-            var httpResponse = _httpClient.Get<ShowResource>(httpRequest);
+            var httpResponse = _httpClient.Get<List<ShowResource>>(httpRequest);
 
             if (httpResponse.HasHttpError)
             {
@@ -61,8 +61,8 @@ namespace NzbDrone.Core.MetadataSource.SkyHook
                 }
             }
 
-            var episodes = httpResponse.Resource.Episodes.Select(MapEpisode);
-            var series = MapSeries(httpResponse.Resource);
+            var episodes = httpResponse.Resource.First().Episodes.Select(MapEpisode);
+            var series = MapSeries(httpResponse.Resource.First());
 
             return new Tuple<Series, List<Episode>>(series, episodes.ToList());
         }
@@ -102,7 +102,7 @@ namespace NzbDrone.Core.MetadataSource.SkyHook
 
                 var httpRequest = _requestBuilder.Create()
                                                  .SetSegment("route", "search")
-                                                 .AddQueryParam("term", title.ToLower().Trim())
+                                                 .AddQueryParam("q", title.ToLower().Trim())
                                                  .Build();
 
                 var httpResponse = _httpClient.Get<List<ShowResource>>(httpRequest);
@@ -173,14 +173,9 @@ namespace NzbDrone.Core.MetadataSource.SkyHook
 
             series.Network = show.Network;
 
-            if (show.TimeOfDay != null)
-            {
-                series.AirTime = string.Format("{0:00}:{1:00}", show.TimeOfDay.Hours, show.TimeOfDay.Minutes);
-            }
-
-            series.TitleSlug = show.Slug;
+            series.TitleSlug = show.TitleSlug;
             series.Status = MapSeriesStatus(show.Status);
-            series.Ratings = MapRatings(show.Rating);
+            series.Ratings = MapRatings(show.Ratings) ?? new Ratings();
             series.Genres = show.Genres;
 
             if (show.ContentRating.IsNotNullOrWhiteSpace())
@@ -280,8 +275,8 @@ namespace NzbDrone.Core.MetadataSource.SkyHook
 
             return new Ratings
             {
-                Votes = rating.Count,
-                Value = rating.Value
+                Votes = rating.Tmdb.Count,
+                Value = rating.Tmdb.Value
             };
         }
 
