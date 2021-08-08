@@ -236,47 +236,7 @@ namespace NzbDrone.Common.Http
 
         public void DownloadFile(string url, string fileName)
         {
-            var fileNamePart = fileName + ".part";
-
-            try
-            {
-                var fileInfo = new FileInfo(fileName);
-                if (fileInfo.Directory != null && !fileInfo.Directory.Exists)
-                {
-                    fileInfo.Directory.Create();
-                }
-
-                _logger.Debug("Downloading [{0}] to [{1}]", url, fileName);
-
-                var stopWatch = Stopwatch.StartNew();
-                using (var fileStream = new FileStream(fileNamePart, FileMode.Create, FileAccess.ReadWrite))
-                {
-                    var request = new HttpRequest(url);
-                    request.ResponseStream = fileStream;
-                    var response = Get(request);
-
-                    if (response.Headers.ContentType != null && response.Headers.ContentType.Contains("text/html"))
-                    {
-                        throw new HttpException(request, response, "Site responded with html content.");
-                    }
-                }
-
-                stopWatch.Stop();
-                if (File.Exists(fileName))
-                {
-                    File.Delete(fileName);
-                }
-
-                File.Move(fileNamePart, fileName);
-                _logger.Debug("Downloading Completed. took {0:0}s", stopWatch.Elapsed.Seconds);
-            }
-            finally
-            {
-                if (File.Exists(fileNamePart))
-                {
-                    File.Delete(fileNamePart);
-                }
-            }
+            _httpDispatcher.DownloadFile(url, fileName);
         }
 
         public HttpResponse Get(HttpRequest request)

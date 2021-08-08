@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
@@ -8,7 +9,6 @@ using NLog.Fluent;
 using NzbDrone.Common.EnvironmentInfo;
 using NzbDrone.Common.Extensions;
 using NzbDrone.Common.Http.Proxy;
-using NzbDrone.Common.Instrumentation.Extensions;
 
 namespace NzbDrone.Common.Http.Dispatchers
 {
@@ -49,7 +49,7 @@ namespace NzbDrone.Common.Http.Dispatchers
                 webRequest.Timeout = (int)Math.Ceiling(request.RequestTimeout.TotalMilliseconds);
             }
 
-            AddProxy(webRequest, request);
+            webRequest.Proxy = GetProxy(request.Url);
 
             if (request.Headers != null)
             {
@@ -77,9 +77,6 @@ namespace NzbDrone.Common.Http.Dispatchers
 
                 if (httpWebResponse == null)
                 {
-                    // Workaround for mono not closing connections properly in certain situations.
-                    AbortWebRequest(webRequest);
-
                     // The default messages for WebException on mono are pretty horrible.
                     if (e.Status == WebExceptionStatus.NameResolutionFailure)
                     {
@@ -124,13 +121,54 @@ namespace NzbDrone.Common.Http.Dispatchers
             return new HttpResponse(request, new HttpHeader(httpWebResponse.Headers), data, httpWebResponse.StatusCode);
         }
 
-        protected virtual void AddProxy(HttpWebRequest webRequest, HttpRequest request)
+        public void DownloadFile(string url, string fileName)
         {
-            var proxySettings = _proxySettingsProvider.GetProxySettings(request);
+            try
+            {
+                var fileInfo = new FileInfo(fileName);
+                if (fileInfo.Directory != null && !fileInfo.Directory.Exists)
+                {
+                    fileInfo.Directory.Create();
+                }
+
+                _logger.Debug("Downloading [{0}] to [{1}]", url, fileName);
+
+                var stopWatch = Stopwatch.StartNew();
+                var uri = new HttpUri(url);
+
+                using (var webClient = new GZipWebClient())
+                {
+                    webClient.Headers.Add(HttpRequestHeader.UserAgent, _userAgentBuilder.GetUserAgent());
+                    webClient.Proxy = GetProxy(uri);
+                    webClient.DownloadFile(uri.FullUri, fileName);
+                    stopWatch.Stop();
+                    _logger.Debug("Downloading Completed. took {0:0}s", stopWatch.Elapsed.Seconds);
+                }
+            }
+            catch (WebException e)
+            {
+                _logger.Warn("Failed to get response from: {0} {1}", url, e.Message);
+                throw;
+            }
+            catch (Exception e)
+            {
+                _logger.Warn(e, "Failed to get response from: " + url);
+                throw;
+            }
+        }
+
+        protected virtual IWebProxy GetProxy(HttpUri uri)
+        {
+            IWebProxy proxy = null;
+
+            var proxySettings = _proxySettingsProvider.GetProxySettings(uri);
+
             if (proxySettings != null)
             {
-                webRequest.Proxy = _createManagedWebProxy.GetWebProxy(proxySettings);
+                proxy = _createManagedWebProxy.GetWebProxy(proxySettings);
             }
+
+            return proxy;
         }
 
         protected virtual void AddRequestHeaders(HttpWebRequest webRequest, HttpHeader headers)
@@ -178,38 +216,6 @@ namespace NzbDrone.Common.Http.Dispatchers
                     default:
                         webRequest.Headers.Add(header.Key, header.Value);
                         break;
-                }
-            }
-        }
-
-        // Workaround for mono not closing connections properly on timeouts
-        private void AbortWebRequest(HttpWebRequest webRequest)
-        {
-            // First affected version was mono 5.16
-            if (OsInfo.IsNotWindows && _platformInfo.Version >= new Version(5, 16))
-            {
-                try
-                {
-                    var currentOperationInfo = webRequest.GetType().GetField("currentOperation", BindingFlags.NonPublic | BindingFlags.Instance);
-                    var currentOperation = currentOperationInfo.GetValue(webRequest);
-
-                    if (currentOperation != null)
-                    {
-                        var responseStreamInfo = currentOperation.GetType().GetField("responseStream", BindingFlags.NonPublic | BindingFlags.Instance);
-                        var responseStream = responseStreamInfo.GetValue(currentOperation) as Stream;
-
-                        // Note that responseStream will likely be null once mono fixes it.
-                        responseStream?.Dispose();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    // This can fail randomly on future mono versions that have been changed/fixed. Log to sentry and ignore.
-                    _logger.Trace()
-                           .Exception(ex)
-                           .Message("Unable to dispose responseStream on mono {0}", _platformInfo.Version)
-                           .WriteSentryWarn("MonoCloseWaitPatchFailed", ex.Message)
-                           .Write();
                 }
             }
         }
