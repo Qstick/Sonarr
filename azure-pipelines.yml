@@ -1,0 +1,882 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+variables:
+  outputFolder: './_output'
+  artifactsFolder: './_artifacts'
+  testsFolder: './_tests'
+  majorVersion: '4.0.0'
+  minorVersion: $[counter('minorVersion', 2000)]
+  sonarrVersion: '$(majorVersion).$(minorVersion)'
+  buildName: '$(Build.SourceBranchName).$(sonarrVersion)'
+  sentryOrg: 'servarr'
+  sentryUrl: 'https://sentry.servarr.com'
+  nodeVersion: '16.X'
+  dotnetVersion: '6.0.300'
+  yarnCacheFolder: $(Pipeline.Workspace)/.yarn
+
+trigger:
+  branches:
+    include:
+    - widowmaker
+
+pr:
+  branches:
+    include:
+    - widowmaker
+  paths:
+    exclude:
+    - src/NzbDrone.Core/Localization/Core
+
+stages:
+  - stage: Setup
+    displayName: Setup
+    jobs:
+    - job:
+      displayName: Build Variables
+      pool:
+        vmImage: 'ubuntu-18.04'
+      steps:
+      # Set the build name properly.  The 'name' property won't recursively expand so hack here:
+      - bash: echo "##vso[build.updatebuildnumber]$SONARRVERSION"
+        displayName: Set Build Name
+      - bash: |
+          if [[ $BUILD_REASON == "PullRequest" ]]; then
+          git diff origin/develop...HEAD  --name-only | grep -E "^(src/|azure-pipelines.yml)"
+          echo $? > not_backend_update
+          else
+          echo 0 > not_backend_update
+          fi
+          cat not_backend_update
+        displayName: Check for Backend File Changes
+      - publish: not_backend_update
+        artifact: not_backend_update
+        displayName: Publish update type
+  - stage: Build_Backend
+    displayName: Build Backend
+    dependsOn: Setup
+    jobs:
+    - job: Backend
+      strategy:
+        matrix:
+          Linux:
+            osName: 'Linux'
+            imageName: 'ubuntu-18.04'
+            enableAnalysis: 'true'
+          Mac:
+            osName: 'Mac'
+            imageName: 'macos-10.15'
+            enableAnalysis: 'false'
+          Windows:
+            osName: 'Windows'
+            imageName: 'windows-2019'
+            enableAnalysis: 'false'
+
+      pool:
+        vmImage: $(imageName)
+      variables:
+        # Disable stylecop here - linting errors get caught by the analyze task
+        EnableAnalyzers: $(enableAnalysis)
+      steps:
+      - checkout: self
+        submodules: true
+        fetchDepth: 1
+      - task: UseDotNet@2
+        displayName: 'Install .net core'
+        inputs:
+          version: $(dotnetVersion)
+      - bash: |
+          BUNDLEDVERSIONS=${AGENT_TOOLSDIRECTORY}/dotnet/sdk/${DOTNETVERSION}/Microsoft.NETCoreSdk.BundledVersions.props
+          echo $BUNDLEDVERSIONS
+          grep osx-x64 $BUNDLEDVERSIONS
+          if grep -q freebsd-x64 $BUNDLEDVERSIONS; then
+            echo "BSD already enabled"
+          else
+            echo "Enabling BSD support"
+            sed -i.ORI 's/osx-x64/osx-x64;freebsd-x64/' $BUNDLEDVERSIONS
+          fi
+        displayName: Enable FreeBSD Support
+      - bash: ./build.sh --backend --enable-bsd
+        displayName: Build Sonarr Backend
+      - bash: |
+          find ${OUTPUTFOLDER} -type f ! -path "*/publish/*" -exec rm -rf {} \;
+          find ${OUTPUTFOLDER} -depth -empty -type d -exec rm -r "{}" \;
+          find ${TESTSFOLDER} -type f ! -path "*/publish/*" -exec rm -rf {} \;
+          find ${TESTSFOLDER} -depth -empty -type d -exec rm -r "{}" \;
+        displayName: Clean up intermediate output
+        condition: and(succeeded(), ne(variables['osName'], 'Windows'))
+      - publish: $(outputFolder)
+        artifact: '$(osName)Backend'
+        displayName: Publish Backend
+        condition: and(succeeded(), eq(variables['osName'], 'Windows'))
+      - publish: '$(testsFolder)/net6.0/win-x64/publish'
+        artifact: WindowsCoreTests
+        displayName: Publish Windows Test Package
+        condition: and(succeeded(), eq(variables['osName'], 'Windows'))
+      - publish: '$(testsFolder)/net6.0/linux-x64/publish'
+        artifact: LinuxCoreTests
+        displayName: Publish Linux Test Package
+        condition: and(succeeded(), eq(variables['osName'], 'Windows'))
+      - publish: '$(testsFolder)/net6.0/linux-musl-x64/publish'
+        artifact: LinuxMuslCoreTests
+        displayName: Publish Linux Musl Test Package
+        condition: and(succeeded(), eq(variables['osName'], 'Windows'))
+      - publish: '$(testsFolder)/net6.0/freebsd-x64/publish'
+        artifact: FreebsdCoreTests
+        displayName: Publish FreeBSD Test Package
+        condition: and(succeeded(), eq(variables['osName'], 'Windows'))
+      - publish: '$(testsFolder)/net6.0/osx-x64/publish'
+        artifact: MacCoreTests
+        displayName: Publish MacOS Test Package
+        condition: and(succeeded(), eq(variables['osName'], 'Windows'))
+
+  - stage: Build_Frontend
+    displayName: Frontend
+    dependsOn: Setup
+    jobs:
+    - job: Build
+      strategy:
+        matrix:
+          Linux:
+            osName: 'Linux'
+            imageName: 'ubuntu-18.04'
+          Mac:
+            osName: 'Mac'
+            imageName: 'macos-10.15'
+          Windows:
+            osName: 'Windows'
+            imageName: 'windows-2019'
+      pool:
+        vmImage: $(imageName)
+      steps:
+      - task: NodeTool@0
+        displayName: Set Node.js version
+        inputs:
+          versionSpec: $(nodeVersion)
+      - checkout: self
+        submodules: true
+        fetchDepth: 1
+      - task: Cache@2
+        inputs:
+          key: 'yarn | "$(osName)" | yarn.lock'
+          restoreKeys: |
+             yarn | "$(osName)"
+          path: $(yarnCacheFolder)
+        displayName: Cache Yarn packages
+      - bash: ./build.sh --frontend
+        displayName: Build Sonarr Frontend
+        env:
+          FORCE_COLOR: 0
+          YARN_CACHE_FOLDER: $(yarnCacheFolder)
+      - publish: $(outputFolder)
+        artifact: '$(osName)Frontend'
+        displayName: Publish Frontend
+        condition: and(succeeded(), eq(variables['osName'], 'Windows'))
+        
+  - stage: Installer
+    dependsOn:
+    - Build_Backend
+    - Build_Frontend
+    jobs:
+    - job: Windows_Installer
+      displayName: Create Installer
+      pool:
+        vmImage: 'windows-2019'
+      steps:
+      - checkout: self
+        fetchDepth: 1
+      - task: DownloadPipelineArtifact@2
+        inputs:
+          buildType: 'current'
+          artifactName: WindowsBackend
+          targetPath: _output
+        displayName: Fetch Backend
+      - task: DownloadPipelineArtifact@2
+        inputs:
+          buildType: 'current'
+          artifactName: WindowsFrontend
+          targetPath: _output
+        displayName: Fetch Frontend
+      - bash: ./build.sh --packages
+        displayName: Create Packages
+      - bash: |
+          distribution/windows/setup/inno/ISCC.exe distribution/windows/setup/sonarr.iss //DFramework=net6.0 //DRuntime=win-x86
+          cp distribution/windows/setup/output/Sonarr.*windows.net6.0.exe ${BUILD_ARTIFACTSTAGINGDIRECTORY}/Sonarr.${BUILDNAME}.windows-core-x86-installer.exe
+        displayName: Create .NET Core Windows installer
+      - bash: |
+          distribution/windows/setup/inno/ISCC.exe distribution/windows/setup/sonarr.iss //DFramework=net6.0 //DRuntime=win-x64
+          cp distribution/windows/setup/output/Sonarr.*windows.net6.0.exe ${BUILD_ARTIFACTSTAGINGDIRECTORY}/Sonarr.${BUILDNAME}.windows-core-x64-installer.exe
+        displayName: Create .NET Core Windows installer
+      - publish: $(Build.ArtifactStagingDirectory)
+        artifact: 'WindowsInstaller'
+        displayName: Publish Installer
+
+  - stage: Packages
+    dependsOn:
+    - Build_Backend
+    - Build_Frontend
+    jobs:
+    - job: Other_Packages
+      displayName: Create Standard Packages
+      pool:
+        vmImage: 'ubuntu-18.04'
+      steps:
+      - checkout: self
+        fetchDepth: 1
+      - task: DownloadPipelineArtifact@2
+        inputs:
+          buildType: 'current'
+          artifactName: WindowsBackend
+          targetPath: _output
+        displayName: Fetch Backend
+      - task: DownloadPipelineArtifact@2
+        inputs:
+          buildType: 'current'
+          artifactName: WindowsFrontend
+          targetPath: _output
+        displayName: Fetch Frontend
+      - bash: ./build.sh --packages --enable-bsd
+        displayName: Create Packages
+      - bash: |
+          find . -name "ffprobe" -exec chmod a+x {} \;
+          find . -name "Sonarr" -exec chmod a+x {} \;
+          find . -name "Sonarr.Update" -exec chmod a+x {} \;
+        displayName: Set executable bits
+      - task: ArchiveFiles@2
+        displayName: Create Windows Core zip
+        inputs:
+          archiveFile: '$(Build.ArtifactStagingDirectory)/Sonarr.$(buildName).windows-core-x64.zip'
+          archiveType: 'zip'
+          includeRootFolder: false
+          rootFolderOrFile: $(artifactsFolder)/win-x64/net6.0
+      - task: ArchiveFiles@2
+        displayName: Create Windows x86 Core zip
+        inputs:
+          archiveFile: '$(Build.ArtifactStagingDirectory)/Sonarr.$(buildName).windows-core-x86.zip'
+          archiveType: 'zip'
+          includeRootFolder: false
+          rootFolderOrFile: $(artifactsFolder)/win-x86/net6.0
+      - task: ArchiveFiles@2
+        displayName: Create MacOS Core app
+        inputs:
+          archiveFile: '$(Build.ArtifactStagingDirectory)/Sonarr.$(buildName).osx-app-core-x64.zip'
+          archiveType: 'zip'
+          includeRootFolder: false
+          rootFolderOrFile: $(artifactsFolder)/osx-x64-app/net6.0
+      - task: ArchiveFiles@2
+        displayName: Create MacOS Core Arm64 app
+        inputs:
+          archiveFile: '$(Build.ArtifactStagingDirectory)/Sonarr.$(buildName).osx-app-core-arm64.zip'
+          archiveType: 'zip'
+          includeRootFolder: false
+          rootFolderOrFile: $(artifactsFolder)/osx-arm64-app/net6.0
+      - task: ArchiveFiles@2
+        displayName: Create MacOS Core tar
+        inputs:
+          archiveFile: '$(Build.ArtifactStagingDirectory)/Sonarr.$(buildName).osx-core-x64.tar.gz'
+          archiveType: 'tar'
+          tarCompression: 'gz'
+          includeRootFolder: false
+          rootFolderOrFile: $(artifactsFolder)/osx-x64/net6.0
+      - task: ArchiveFiles@2
+        displayName: Create ARM64 Linux Core tar
+        inputs:
+          archiveFile: '$(Build.ArtifactStagingDirectory)/Sonarr.$(buildName).osx-core-arm64.tar.gz'
+          archiveType: 'tar'
+          tarCompression: 'gz'
+          includeRootFolder: false
+          rootFolderOrFile: $(artifactsFolder)/osx-arm64/net6.0
+      - task: ArchiveFiles@2
+        displayName: Create Linux Core tar
+        inputs:
+          archiveFile: '$(Build.ArtifactStagingDirectory)/Sonarr.$(buildName).linux-core-x64.tar.gz'
+          archiveType: 'tar'
+          tarCompression: 'gz'
+          includeRootFolder: false
+          rootFolderOrFile: $(artifactsFolder)/linux-x64/net6.0
+      - task: ArchiveFiles@2
+        displayName: Create Linux Musl Core tar
+        inputs:
+          archiveFile: '$(Build.ArtifactStagingDirectory)/Sonarr.$(buildName).linux-musl-core-x64.tar.gz'
+          archiveType: 'tar'
+          tarCompression: 'gz'
+          includeRootFolder: false
+          rootFolderOrFile: $(artifactsFolder)/linux-musl-x64/net6.0
+      - task: ArchiveFiles@2
+        displayName: Create ARM32 Linux Core tar
+        inputs:
+          archiveFile: '$(Build.ArtifactStagingDirectory)/Sonarr.$(buildName).linux-core-arm.tar.gz'
+          archiveType: 'tar'
+          tarCompression: 'gz'
+          includeRootFolder: false
+          rootFolderOrFile: $(artifactsFolder)/linux-arm/net6.0
+      - task: ArchiveFiles@2
+        displayName: Create ARM64 Linux Core tar
+        inputs:
+          archiveFile: '$(Build.ArtifactStagingDirectory)/Sonarr.$(buildName).linux-core-arm64.tar.gz'
+          archiveType: 'tar'
+          tarCompression: 'gz'
+          includeRootFolder: false
+          rootFolderOrFile: $(artifactsFolder)/linux-arm64/net6.0
+      - task: ArchiveFiles@2
+        displayName: Create ARM64 Linux Musl Core tar
+        inputs:
+          archiveFile: '$(Build.ArtifactStagingDirectory)/Sonarr.$(buildName).linux-musl-core-arm64.tar.gz'
+          archiveType: 'tar'
+          tarCompression: 'gz'
+          includeRootFolder: false
+          rootFolderOrFile: $(artifactsFolder)/linux-musl-arm64/net6.0
+      - task: ArchiveFiles@2
+        displayName: Create FreeBSD Core Core tar
+        inputs:
+          archiveFile: '$(Build.ArtifactStagingDirectory)/Sonarr.$(buildName).freebsd-core-x64.tar.gz'
+          archiveType: 'tar'
+          tarCompression: 'gz'
+          includeRootFolder: false
+          rootFolderOrFile: $(artifactsFolder)/freebsd-x64/net6.0
+      - publish: $(Build.ArtifactStagingDirectory)
+        artifact: 'Packages'
+        displayName: Publish Packages
+      - bash: |
+          echo "Uploading source maps to sentry"
+          curl -sL https://sentry.io/get-cli/ | bash
+          RELEASENAME="${SONARRVERSION}-${BUILD_SOURCEBRANCHNAME}"
+          sentry-cli releases new --finalize -p sonarr -p sonarr-ui -p sonarr-update "${RELEASENAME}"
+          sentry-cli releases -p sonarr-ui files "${RELEASENAME}" upload-sourcemaps _output/UI/ --rewrite
+          sentry-cli releases set-commits --auto "${RELEASENAME}"
+          if [[ ${BUILD_SOURCEBRANCH} == "refs/heads/develop" ]]; then
+          sentry-cli releases deploys "${RELEASENAME}" new -e nightly
+          else
+          sentry-cli releases deploys "${RELEASENAME}" new -e production
+          fi
+          if [ $? -gt 0 ]; then
+            echo "##vso[task.logissue type=warning]Error uploading source maps."
+          fi
+          exit 0
+        displayName: Publish Sentry Source Maps
+        condition: |
+          or
+          (
+            and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/develop')),
+            and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+          )
+        env:
+          SENTRY_AUTH_TOKEN: $(sentryAuthTokenServarr)
+          SENTRY_ORG: $(sentryOrg)
+          SENTRY_URL: $(sentryUrl)
+    
+  - stage: Unit_Test
+    displayName: Unit Tests
+    dependsOn: Build_Backend
+
+    jobs:
+    - job: Prepare
+      pool:
+        vmImage: 'ubuntu-18.04'
+      steps:
+      - checkout: none
+      - task: DownloadPipelineArtifact@2
+        inputs:
+          buildType: 'current'
+          artifactName: 'not_backend_update'
+          targetPath: '.'
+      - bash: echo "##vso[task.setvariable variable=backendNotUpdated;isOutput=true]$(cat not_backend_update)"
+        name: setVar
+
+    - job: Unit
+      displayName: Unit Native
+      dependsOn: Prepare
+      condition: and(succeeded(), eq(dependencies.Prepare.outputs['setVar.backendNotUpdated'], '0'))
+      workspace:
+        clean: all
+
+      strategy:
+        matrix:
+          MacCore:
+            osName: 'Mac'
+            testName: 'MacCore'
+            poolName: 'Azure Pipelines'
+            imageName: 'macos-10.15'
+          WindowsCore:
+            osName: 'Windows'
+            testName: 'WindowsCore'
+            poolName: 'Azure Pipelines'
+            imageName: 'windows-2019'
+          LinuxCore:
+            osName: 'Linux'
+            testName: 'LinuxCore'
+            poolName: 'Azure Pipelines'
+            imageName: 'ubuntu-18.04'
+          FreebsdCore:
+            osName: 'Linux'
+            testName: 'FreebsdCore'
+            poolName: 'FreeBSD'
+            imageName:
+
+      pool:
+        name: $(poolName)
+        vmImage: $(imageName)
+
+      steps:
+      - checkout: none
+      - task: UseDotNet@2
+        displayName: 'Install .net core'
+        inputs:
+          version: $(dotnetVersion)
+        condition: ne(variables['poolName'], 'FreeBSD')
+      - task: DownloadPipelineArtifact@2
+        displayName: Download Test Artifact
+        inputs:
+          buildType: 'current'
+          artifactName: '$(testName)Tests'
+          targetPath: $(testsFolder)
+      - powershell: Set-Service SCardSvr -StartupType Manual
+        displayName: Enable Windows Test Service
+        condition: and(succeeded(), eq(variables['osName'], 'Windows'))
+      - bash: |
+          chmod a+x _tests/ffprobe
+        displayName: Make ffprobe Executable
+        condition: and(succeeded(), ne(variables['osName'], 'Windows'))
+      - bash: find ${TESTSFOLDER} -name "Sonarr.Test.Dummy" -exec chmod a+x {} \;
+        displayName: Make Test Dummy Executable
+        condition: and(succeeded(), ne(variables['osName'], 'Windows'))
+      - bash: |
+          chmod a+x ${TESTSFOLDER}/test.sh
+          ${TESTSFOLDER}/test.sh ${OSNAME} Unit Test
+        displayName: Run Tests
+        env:
+          TEST_DIR: $(Build.SourcesDirectory)/_tests
+      - task: PublishTestResults@2
+        displayName: Publish Test Results
+        inputs:
+          testResultsFormat: 'NUnit'
+          testResultsFiles: '**/TestResult.xml'
+          testRunTitle: '$(testName) Unit Tests'
+          failTaskOnFailedTests: true
+
+    - job: Unit_Docker
+      displayName: Unit Docker
+      dependsOn: Prepare
+      condition: and(succeeded(), eq(dependencies.Prepare.outputs['setVar.backendNotUpdated'], '0'))
+      strategy:
+        matrix:
+          alpine:
+            testName: 'Musl Net Core'
+            artifactName: LinuxMuslCoreTests
+            containerImage: ghcr.io/servarr/testimages:alpine
+
+      pool:
+        vmImage: 'ubuntu-18.04'
+      
+      container: $[ variables['containerImage'] ]
+
+      timeoutInMinutes: 10
+        
+      steps:
+      - task: UseDotNet@2
+        displayName: 'Install .net core'
+        inputs:
+          version: $(dotnetVersion)
+      - checkout: none
+      - task: DownloadPipelineArtifact@2
+        displayName: Download Test Artifact
+        inputs:
+          buildType: 'current'
+          artifactName: $(artifactName)
+          targetPath: $(testsFolder)
+      - bash: |
+          chmod a+x _tests/ffprobe
+        displayName: Make ffprobe Executable
+      - bash: find ${TESTSFOLDER} -name "Sonarr.Test.Dummy" -exec chmod a+x {} \;
+        displayName: Make Test Dummy Executable
+        condition: and(succeeded(), ne(variables['osName'], 'Windows'))
+      - bash: |
+          chmod a+x ${TESTSFOLDER}/test.sh
+          ls -lR ${TESTSFOLDER}
+          ${TESTSFOLDER}/test.sh Linux Unit Test
+        displayName: Run Tests
+      - task: PublishTestResults@2
+        displayName: Publish Test Results
+        inputs:
+          testResultsFormat: 'NUnit'
+          testResultsFiles: '**/TestResult.xml'
+          testRunTitle: '$(testName) Unit Tests'
+          failTaskOnFailedTests: true
+
+  - stage: Integration
+    displayName: Integration
+    dependsOn: Packages
+
+    jobs:
+    - job: Prepare
+      pool:
+        vmImage: 'ubuntu-18.04'
+      steps:
+      - checkout: none
+      - task: DownloadPipelineArtifact@2
+        inputs:
+          buildType: 'current'
+          artifactName: 'not_backend_update'
+          targetPath: '.'
+      - bash: echo "##vso[task.setvariable variable=backendNotUpdated;isOutput=true]$(cat not_backend_update)"
+        name: setVar
+
+    - job: Integration_Native
+      displayName: Integration Native
+      dependsOn: Prepare
+      condition: and(succeeded(), eq(dependencies.Prepare.outputs['setVar.backendNotUpdated'], '0'))
+      strategy:
+        matrix:
+          MacCore:
+            osName: 'Mac'
+            testName: 'MacCore'
+            imageName: 'macos-10.15'
+            pattern: 'Sonarr.*.osx-core-x64.tar.gz'
+          WindowsCore:
+            osName: 'Windows'
+            testName: 'WindowsCore'
+            imageName: 'windows-2019'
+            pattern: 'Sonarr.*.windows-core-x64.zip'
+          LinuxCore:
+            osName: 'Linux'
+            testName: 'LinuxCore'
+            imageName: 'ubuntu-18.04'
+            pattern: 'Sonarr.*.linux-core-x64.tar.gz'
+
+      pool:
+        vmImage: $(imageName)
+        
+      steps:
+      - task: UseDotNet@2
+        displayName: 'Install .net core'
+        inputs:
+          version: $(dotnetVersion)
+      - checkout: none
+      - task: DownloadPipelineArtifact@2
+        displayName: Download Test Artifact
+        inputs:
+          buildType: 'current'
+          artifactName: '$(testName)Tests'
+          targetPath: $(testsFolder)
+      - task: DownloadPipelineArtifact@2
+        displayName: Download Build Artifact
+        inputs:
+          buildType: 'current'
+          artifactName: Packages
+          itemPattern: '**/$(pattern)'
+          targetPath: $(Build.ArtifactStagingDirectory)
+      - task: ExtractFiles@1
+        inputs:
+          archiveFilePatterns: '$(Build.ArtifactStagingDirectory)/**/$(pattern)' 
+          destinationFolder: '$(Build.ArtifactStagingDirectory)/bin'
+        displayName: Extract Package
+      - bash: |
+          mkdir -p ./bin/
+          cp -r -v ${BUILD_ARTIFACTSTAGINGDIRECTORY}/bin/Sonarr/. ./bin/
+        displayName: Move Package Contents
+      - bash: |
+          chmod a+x ${TESTSFOLDER}/test.sh
+          ${TESTSFOLDER}/test.sh ${OSNAME} Integration Test
+        displayName: Run Integration Tests
+      - task: PublishTestResults@2
+        inputs:
+          testResultsFormat: 'NUnit'
+          testResultsFiles: '**/TestResult.xml'
+          testRunTitle: '$(testName) Integration Tests'
+          failTaskOnFailedTests: true
+        displayName: Publish Test Results
+
+    - job: Integration_FreeBSD
+      displayName: Integration Native FreeBSD
+      dependsOn: Prepare
+      condition: and(succeeded(), eq(dependencies.Prepare.outputs['setVar.backendNotUpdated'], '0'))
+      workspace:
+        clean: all
+      variables:
+        pattern: 'Sonarr.*.freebsd-core-x64.tar.gz'
+      pool:
+        name: 'FreeBSD'
+
+      steps:
+      - checkout: none
+      - task: DownloadPipelineArtifact@2
+        displayName: Download Test Artifact
+        inputs:
+          buildType: 'current'
+          artifactName: 'FreebsdCoreTests'
+          targetPath: $(testsFolder)
+      - task: DownloadPipelineArtifact@2
+        displayName: Download Build Artifact
+        inputs:
+          buildType: 'current'
+          artifactName: Packages
+          itemPattern: '**/$(pattern)'
+          targetPath: $(Build.ArtifactStagingDirectory)
+      - bash: |
+          mkdir -p ${BUILD_ARTIFACTSTAGINGDIRECTORY}/bin
+          tar xf ${BUILD_ARTIFACTSTAGINGDIRECTORY}/$(pattern) -C ${BUILD_ARTIFACTSTAGINGDIRECTORY}/bin
+        displayName: Extract Package
+      - bash: |
+          mkdir -p ./bin/
+          cp -r -v ${BUILD_ARTIFACTSTAGINGDIRECTORY}/bin/Sonarr/. ./bin/
+        displayName: Move Package Contents
+      - bash: |
+          chmod a+x ${TESTSFOLDER}/test.sh
+          ${TESTSFOLDER}/test.sh Linux Integration Test
+        displayName: Run Integration Tests
+      - task: PublishTestResults@2
+        inputs:
+          testResultsFormat: 'NUnit'
+          testResultsFiles: '**/TestResult.xml'
+          testRunTitle: 'FreeBSD Integration Tests'
+          failTaskOnFailedTests: true
+        displayName: Publish Test Results
+
+    - job: Integration_Docker
+      displayName: Integration Docker
+      dependsOn: Prepare
+      condition: and(succeeded(), eq(dependencies.Prepare.outputs['setVar.backendNotUpdated'], '0'))
+      strategy:
+        matrix:
+          alpine:
+            testName: 'Musl Net Core'
+            artifactName: LinuxMuslCoreTests
+            containerImage: ghcr.io/servarr/testimages:alpine
+            pattern: 'Sonarr.*.linux-musl-core-x64.tar.gz'
+      pool:
+        vmImage: 'ubuntu-18.04'
+
+      container: $[ variables['containerImage'] ]
+
+      timeoutInMinutes: 15
+        
+      steps:
+      - task: UseDotNet@2
+        displayName: 'Install .net core'
+        inputs:
+          version: $(dotnetVersion)
+      - checkout: none
+      - task: DownloadPipelineArtifact@2
+        displayName: Download Test Artifact
+        inputs:
+          buildType: 'current'
+          artifactName: $(artifactName)
+          targetPath: $(testsFolder)
+      - task: DownloadPipelineArtifact@2
+        displayName: Download Build Artifact
+        inputs:
+          buildType: 'current'
+          artifactName: Packages
+          itemPattern: '**/$(pattern)'
+          targetPath: $(Build.ArtifactStagingDirectory)
+      - task: ExtractFiles@1
+        inputs:
+          archiveFilePatterns: '$(Build.ArtifactStagingDirectory)/**/$(pattern)' 
+          destinationFolder: '$(Build.ArtifactStagingDirectory)/bin'
+        displayName: Extract Package
+      - bash: |
+          mkdir -p ./bin/
+          cp -r -v ${BUILD_ARTIFACTSTAGINGDIRECTORY}/bin/Sonarr/. ./bin/
+        displayName: Move Package Contents
+      - bash: |
+          chmod a+x ${TESTSFOLDER}/test.sh
+          ${TESTSFOLDER}/test.sh Linux Integration Test
+        displayName: Run Integration Tests
+      - task: PublishTestResults@2
+        inputs:
+          testResultsFormat: 'NUnit'
+          testResultsFiles: '**/TestResult.xml'
+          testRunTitle: '$(testName) Integration Tests'
+          failTaskOnFailedTests: true
+        displayName: Publish Test Results
+
+  - stage: Automation
+    displayName: Automation
+    dependsOn: Packages
+    
+    jobs:
+    - job: Automation
+      strategy:
+        matrix:
+          Linux:
+            osName: 'Linux'
+            imageName: 'ubuntu-18.04'
+            pattern: 'Sonarr.*.linux-core-x64.tar.gz'
+            failBuild: true
+          Mac:
+            osName: 'Mac'
+            imageName: 'macos-10.15'
+            pattern: 'Sonarr.*.osx-core-x64.tar.gz'
+            failBuild: true
+          Windows:
+            osName: 'Windows'
+            imageName: 'windows-2019'
+            pattern: 'Sonarr.*.windows-core-x64.zip'
+            failBuild: true
+
+      pool:
+        vmImage: $(imageName)
+        
+      steps:
+      - task: UseDotNet@2
+        displayName: 'Install .net core'
+        inputs:
+          version: $(dotnetVersion)
+      - checkout: none
+      - task: DownloadPipelineArtifact@2
+        displayName: Download Test Artifact
+        inputs:
+          buildType: 'current'
+          artifactName: '$(osName)CoreTests'
+          targetPath: $(testsFolder)
+      - task: DownloadPipelineArtifact@2
+        displayName: Download Build Artifact
+        inputs:
+          buildType: 'current'
+          artifactName: Packages
+          itemPattern: '**/$(pattern)'
+          targetPath: $(Build.ArtifactStagingDirectory)
+      - task: ExtractFiles@1
+        inputs:
+          archiveFilePatterns: '$(Build.ArtifactStagingDirectory)/**/$(pattern)' 
+          destinationFolder: '$(Build.ArtifactStagingDirectory)/bin'
+        displayName: Extract Package
+      - bash: |
+          mkdir -p ./bin/
+          cp -r -v ${BUILD_ARTIFACTSTAGINGDIRECTORY}/bin/Sonarr/. ./bin/
+        displayName: Move Package Contents
+      - bash: |
+          chmod a+x ${TESTSFOLDER}/test.sh
+          ${TESTSFOLDER}/test.sh ${OSNAME} Automation Test
+        displayName: Run Automation Tests
+      - task: CopyFiles@2
+        displayName: 'Copy Screenshot to: $(Build.ArtifactStagingDirectory)'
+        inputs:
+          SourceFolder: '$(Build.SourcesDirectory)'
+          Contents: |
+            **/*_test_screenshot.png
+          TargetFolder: '$(Build.ArtifactStagingDirectory)/screenshots'
+      - publish: $(Build.ArtifactStagingDirectory)/screenshots
+        artifact: '$(osName)AutomationScreenshots'
+        displayName: Publish Screenshot Bundle
+        condition: and(succeeded(), eq(variables['System.JobAttempt'], '1'))
+      - task: PublishTestResults@2
+        inputs:
+          testResultsFormat: 'NUnit'
+          testResultsFiles: '**/TestResult.xml'
+          testRunTitle: '$(osName) Automation Tests'
+          failTaskOnFailedTests: $(failBuild)
+        displayName: Publish Test Results
+
+  - stage: Analyze
+    dependsOn:
+    - Setup
+    displayName: Analyze
+
+    jobs:
+    - job: Prepare
+      pool:
+        vmImage: 'ubuntu-18.04'
+      steps:
+      - checkout: none
+      - task: DownloadPipelineArtifact@2
+        inputs:
+          buildType: 'current'
+          artifactName: 'not_backend_update'
+          targetPath: '.'
+      - bash: echo "##vso[task.setvariable variable=backendNotUpdated;isOutput=true]$(cat not_backend_update)"
+        name: setVar
+
+    - job: Lint_Frontend
+      displayName: Lint Frontend
+      strategy:
+        matrix:
+          Linux:
+            osName: 'Linux'
+            imageName: 'ubuntu-18.04'
+          Windows:
+            osName: 'Windows'
+            imageName: 'windows-2019'
+      pool:
+        vmImage: $(imageName)
+      steps:
+      - task: NodeTool@0
+        displayName: Set Node.js version
+        inputs:
+          versionSpec: $(nodeVersion)
+      - checkout: self
+        submodules: true
+        fetchDepth: 1
+      - task: Cache@2
+        inputs:
+          key: 'yarn | "$(osName)" | yarn.lock'
+          restoreKeys: |
+             yarn | "$(osName)"
+          path: $(yarnCacheFolder)
+        displayName: Cache Yarn packages
+      - bash: ./build.sh --lint
+        displayName: Lint Sonarr Frontend
+        env:
+          FORCE_COLOR: 0
+          YARN_CACHE_FOLDER: $(yarnCacheFolder)
+
+    # - job: Analyze_Frontend
+      # displayName: Frontend
+      # condition: eq(variables['System.PullRequest.IsFork'], 'False')
+      # pool:
+        # vmImage: windows-2019
+      # steps:
+      # - checkout: self # Need history for Sonar analysis
+      # - task: SonarCloudPrepare@1
+        # env:
+          # SONAR_SCANNER_OPTS: ''
+        # inputs:
+          # SonarCloud: 'SonarCloud'
+          # organization: 'sonarr'
+          # scannerMode: 'CLI'
+          # configMode: 'manual'
+          # cliProjectKey: 'Sonarr_Sonarr.UI'
+          # cliProjectName: 'SonarrUI'
+          # cliProjectVersion: '$(sonarrVersion)'
+          # cliSources: './frontend'
+      # - task: SonarCloudAnalyze@1
+
+    - job: Analyze_Backend
+      displayName: Backend
+      dependsOn: Prepare
+      condition: and(succeeded(), eq(dependencies.Prepare.outputs['setVar.backendNotUpdated'], '0'))
+
+      variables:
+        disable.coverage.autogenerate: 'true'
+        EnableAnalyzers: 'false'
+
+      pool:
+        vmImage: windows-2019
+
+      steps:
+      - task: UseDotNet@2
+        displayName: 'Install .net core'
+        inputs:
+          version: $(dotnetVersion)
+      - checkout: self # Need history for Sonar analysis
+        submodules: true
+      - powershell: Set-Service SCardSvr -StartupType Manual
+        displayName: Enable Windows Test Service
+      - bash: |
+          ./build.sh --backend -f net6.0 -r win-x64
+          TEST_DIR=_tests/net6.0/win-x64/publish/ ./test.sh Windows Unit Coverage
+        displayName: Coverage Unit Tests
+      - task: reportgenerator@4
+        displayName: Generate Coverage Report
+        inputs:
+          reports: '$(Build.SourcesDirectory)/CoverageResults/**/coverage.opencover.xml'
+          targetdir: '$(Build.SourcesDirectory)/CoverageResults/combined'
+          reporttypes: 'HtmlInline_AzurePipelines;Cobertura;Badges'
+      - task: PublishCodeCoverageResults@1
+        displayName: Publish Coverage Report
+        inputs:
+          codeCoverageTool: 'cobertura'
+          summaryFileLocation: './CoverageResults/combined/Cobertura.xml'
+          reportDirectory: './CoverageResults/combined/'
