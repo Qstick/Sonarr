@@ -68,14 +68,14 @@ namespace NzbDrone.Common.Instrumentation
             if (updateClient)
             {
                 dsn = RuntimeInfo.IsProduction
-                    ? "https://80777986b95f44a1a90d1eb2f3af1e36@sentry.sonarr.tv/11"
-                    : "https://6168f0946aba4e60ac23e469ac08eac5@sentry.sonarr.tv/9";
+                    ? "https://7bd7749ff5cf4417be843cf7ff58f283@sentry.servarr.com/35"
+                    : "https://7bd7749ff5cf4417be843cf7ff58f283@sentry.servarr.com/35";
             }
             else
             {
                 dsn = RuntimeInfo.IsProduction
-                    ? "https://e2adcbe52caf46aeaebb6b1dcdfe10a1@sentry.sonarr.tv/8"
-                    : "https://4ee3580e01d8407c96a7430fbc953512@sentry.sonarr.tv/10";
+                    ? "https://7bd7749ff5cf4417be843cf7ff58f283@sentry.servarr.com/35"
+                    : "https://7bd7749ff5cf4417be843cf7ff58f283@sentry.servarr.com/35";
             }
 
             Target target;
