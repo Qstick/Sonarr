@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using NLog;
 using NzbDrone.Common.Cloud;
 using NzbDrone.Common.Http;
@@ -15,7 +15,7 @@ namespace NzbDrone.Core.HealthCheck.Checks
         public SystemTimeCheck(IHttpClient client, ISonarrCloudRequestBuilder cloudRequestBuilder, Logger logger)
         {
             _client = client;
-            _cloudRequestBuilder = cloudRequestBuilder.Services;
+            _cloudRequestBuilder = cloudRequestBuilder.UpdateServices;
             _logger = logger;
         }
 
