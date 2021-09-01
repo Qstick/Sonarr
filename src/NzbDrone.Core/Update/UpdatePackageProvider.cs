@@ -27,7 +27,7 @@ namespace NzbDrone.Core.Update
         {
             _platformInfo = platformInfo;
             _analyticsService = analyticsService;
-            _requestBuilder = requestBuilder.Services;
+            _requestBuilder = requestBuilder.UpdateServices;
             _httpClient = httpClient;
             _mainDatabase = mainDatabase;
         }
