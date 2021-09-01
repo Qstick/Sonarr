@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using NzbDrone.Common.Cloud;
@@ -25,7 +25,7 @@ namespace NzbDrone.Core.Update
         {
             _platformInfo = platformInfo;
             _analyticsService = analyticsService;
-            _requestBuilder = requestBuilder.Services;
+            _requestBuilder = requestBuilder.UpdateServices;
             _httpClient = httpClient;
         }
 
