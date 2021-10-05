@@ -2,10 +2,11 @@
   <!-- Common to all Sonarr Projects -->
   <PropertyGroup>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
 
     <PlatformTarget>AnyCPU</PlatformTarget>
     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
-    <RuntimeIdentifiers>win-x64;win-x86;osx-x64;linux-x64;linux-musl-x64;linux-arm;linux-arm64;linux-musl-arm64</RuntimeIdentifiers>
+    <RuntimeIdentifiers>win-x64;win-x86;osx-x64;osx-arm64;linux-x64;linux-musl-x64;linux-arm;linux-arm64;linux-musl-arm64</RuntimeIdentifiers>
 
     <SonarrRootDir>$(MSBuildThisFileDirectory)..\</SonarrRootDir>
 
@@ -88,13 +89,13 @@
 
   <!-- Standard testing packages -->
   <ItemGroup Condition="'$(TestProject)'=='true'">
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.9.4" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.0.0" />
     <PackageReference Include="NUnit" Version="3.13.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.17.0" />
     <PackageReference Include="NunitXml.TestLogger" Version="2.1.62" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TestProject)'=='true' and '$(TargetFramework)'=='net5.0'">
+  <ItemGroup Condition="'$(TestProject)'=='true' and '$(TargetFramework)'=='net6.0'">
     <PackageReference Include="coverlet.collector" Version="3.0.4-preview.27.ge7cb7c3b40" />
   </ItemGroup>
 
