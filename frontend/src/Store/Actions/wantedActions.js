@@ -39,12 +39,12 @@ export const defaultState = {
         isVisible: true
       },
       {
-        name: 'episodeTitle',
+        name: 'episodes.title',
         label: 'Episode Title',
         isVisible: true
       },
       {
-        name: 'airDateUtc',
+        name: 'episodes.airDateUtc',
         label: 'Air Date',
         isSortable: true,
         isVisible: true
