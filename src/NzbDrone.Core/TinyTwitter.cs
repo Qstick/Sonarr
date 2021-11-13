@@ -1,12 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Net;
+using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
-using Newtonsoft.Json;
 
 namespace TinyTwitter
 {
@@ -38,7 +36,7 @@ namespace TinyTwitter
 
         public void UpdateStatus(string message)
         {
-            new RequestBuilder(_oauth, "POST", "https://api.twitter.com/1.1/statuses/update.json")
+            new RequestBuilder(_oauth, HttpMethod.Post, "https://api.twitter.com/1.1/statuses/update.json")
                 .AddParameter("status", message)
                 .Execute();
         }
@@ -46,13 +44,13 @@ namespace TinyTwitter
         /**
          *
          * As of June 26th 2015 Direct Messaging is not part of TinyTwitter.
-         * I have added it to Sonarr's copy to make our implementation easier
+         * I have added it to Readarr's copy to make our implementation easier
          * and added this banner so it's not blindly updated.
          *
          **/
         public void DirectMessage(string message, string screenName)
         {
-            new RequestBuilder(_oauth, "POST", "https://api.twitter.com/1.1/direct_messages/new.json")
+            new RequestBuilder(_oauth, HttpMethod.Post, "https://api.twitter.com/1.1/direct_messages/new.json")
                 .AddParameter("text", message)
                 .AddParameter("screen_name", screenName)
                 .Execute();
@@ -64,16 +62,18 @@ namespace TinyTwitter
             private const string SIGNATURE_METHOD = "HMAC-SHA1";
 
             private readonly OAuthInfo _oauth;
-            private readonly string _method;
+            private readonly HttpMethod _method;
             private readonly IDictionary<string, string> _customParameters;
             private readonly string _url;
+            private readonly HttpClient _httpClient;
 
-            public RequestBuilder(OAuthInfo oauth, string method, string url)
+            public RequestBuilder(OAuthInfo oauth, HttpMethod method, string url)
             {
                 _oauth = oauth;
                 _method = method;
                 _url = url;
                 _customParameters = new Dictionary<string, string>();
+                _httpClient = new ();
             }
 
             public RequestBuilder AddParameter(string name, string value)
@@ -93,62 +93,13 @@ namespace TinyTwitter
                 var signature = GenerateSignature(parameters);
                 var headerValue = GenerateAuthorizationHeaderValue(parameters, signature);
 
-                var request = (HttpWebRequest)WebRequest.Create(GetRequestUrl());
-                request.Method = _method;
-                request.ContentType = "application/x-www-form-urlencoded";
+                var request = new HttpRequestMessage(_method, _url);
+                request.Content = new FormUrlEncodedContent(_customParameters);
 
                 request.Headers.Add("Authorization", headerValue);
 
-                WriteRequestBody(request);
-
-                // It looks like a bug in HttpWebRequest. It throws random TimeoutExceptions
-                // after some requests. Abort the request seems to work. More info:
-                // http://stackoverflow.com/questions/2252762/getrequeststream-throws-timeout-exception-randomly
-
-                var response = request.GetResponse();
-
-                string content;
-
-                using (var stream = response.GetResponseStream())
-                {
-                    using (var reader = new StreamReader(stream))
-                    {
-                        content = reader.ReadToEnd();
-                    }
-                }
-
-                request.Abort();
-
-                return content;
-            }
-
-            private void WriteRequestBody(HttpWebRequest request)
-            {
-                if (_method == "GET")
-                {
-                    return;
-                }
-
-                var requestBody = Encoding.ASCII.GetBytes(GetCustomParametersString());
-                using (var stream = request.GetRequestStream())
-                {
-                    stream.Write(requestBody, 0, requestBody.Length);
-                }
-            }
-
-            private string GetRequestUrl()
-            {
-                if (_method != "GET" || _customParameters.Count == 0)
-                {
-                    return _url;
-                }
-
-                return string.Format("{0}?{1}", _url, GetCustomParametersString());
-            }
-
-            private string GetCustomParametersString()
-            {
-                return _customParameters.Select(x => string.Format("{0}={1}", x.Key, x.Value)).Join("&");
+                var response = _httpClient.Send(request);
+                return response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
             }
 
             private string GenerateAuthorizationHeaderValue(IEnumerable<KeyValuePair<string, string>> parameters, string signature)
@@ -164,8 +115,8 @@ namespace TinyTwitter
             private string GenerateSignature(IEnumerable<KeyValuePair<string, string>> parameters)
             {
                 var dataToSign = new StringBuilder()
-                    .Append(_method).Append('&')
-                    .Append(_url.EncodeRFC3986()).Append('&')
+                    .Append(_method).Append("&")
+                    .Append(_url.EncodeRFC3986()).Append("&")
                     .Append(parameters
                                 .OrderBy(x => x.Key)
                                 .Select(x => string.Format("{0}={1}", x.Key, x.Value))
@@ -216,7 +167,6 @@ namespace TinyTwitter
         public static string EncodeRFC3986(this string value)
         {
             // From Twitterizer http://www.twitterizer.net/
-
             if (string.IsNullOrEmpty(value))
             {
                 return string.Empty;
