@@ -4,8 +4,6 @@ $fullColorGradient: rgba(244, 245, 246, 0.2);
   overflow-x: hidden;
   margin: 4px 2px;
   padding: 5px;
-  border-bottom: 1px solid $borderColor;
-  border-left: 4px solid $borderColor;
   font-size: 12px;
 
   &:global(.colorImpaired) {
@@ -19,7 +17,7 @@ $fullColorGradient: rgba(244, 245, 246, 0.2);
 }
 
 .episodeInfo {
-  color: $calendarTextDim;
+  color: var(--offWhite);
 }
 
 .seriesTitle,
@@ -30,12 +28,13 @@ $fullColorGradient: rgba(244, 245, 246, 0.2);
 }
 
 .seriesTitle {
-  color: #3a3f51;
+  color: var(--white);
   font-size: $defaultFontSize;
 }
 
 .absoluteEpisodeNumber {
   margin-left: 3px;
+  color: var(--offWhite);
 }
 
 .statusContainer {
@@ -48,7 +47,7 @@ $fullColorGradient: rgba(244, 245, 246, 0.2);
 }
 
 .airTime {
-  color: $calendarTextDim;
+  color: var(--offWhite);
 }
 
 /*
@@ -56,19 +55,21 @@ $fullColorGradient: rgba(244, 245, 246, 0.2);
  */
 
 .downloaded {
-  border-left-color: $successColor !important;
+  border-left-color: var(--successColor) !important;
+  background-color: var(--successColor);
 
   &:global(.fullColor) {
     background-color: rgba(39, 194, 76, 0.4) !important;
   }
 
   &:global(.colorImpaired) {
-    border-left-color: color($successColor, saturation(+15%)) !important;
+    border-left-color: color(var(--successColor), saturation(+15%)) !important;
   }
 }
 
 .downloading {
-  border-left-color: $purple !important;
+  border-left-color: var(--purple) !important;
+  background-color: var(--purple);
 
   &:global(.fullColor) {
     background-color: rgba(122, 67, 182, 0.4) !important;
@@ -76,14 +77,15 @@ $fullColorGradient: rgba(244, 245, 246, 0.2);
 }
 
 .unmonitored {
-  border-left-color: $gray !important;
+  border-left-color: var(--gray) !important;
+  background-color: var(--gray);
 
   &:global(.fullColor) {
     background-color: rgba(173, 173, 173, 0.5) !important;
   }
 
   &:global(.colorImpaired) {
-    background: repeating-linear-gradient(45deg, $colorImpairedGradientDark, $colorImpairedGradientDark 5px, $colorImpairedGradient 5px, $colorImpairedGradient 10px);
+    background: repeating-linear-gradient(45deg, var(--colorImpairedGradientDark), var(--colorImpairedGradientDark) 5px, var(--colorImpairedGradient) 5px, var(--colorImpairedGradient) 10px);
   }
 
   &:global(.fullColor.colorImpaired) {
@@ -92,14 +94,15 @@ $fullColorGradient: rgba(244, 245, 246, 0.2);
 }
 
 .onAir {
-  border-left-color: $warningColor !important;
+  border-left-color: var(--warningColor) !important;
+  background-color: var(--warningColor);
 
   &:global(.fullColor) {
     background-color: rgba(255, 165, 0, 0.6) !important;
   }
 
   &:global(.colorImpaired) {
-    background: repeating-linear-gradient(90deg, $colorImpairedGradientDark, $colorImpairedGradientDark 5px, $colorImpairedGradient 5px, $colorImpairedGradient 10px);
+    background: repeating-linear-gradient(90deg, var(--colorImpairedGradientDark), var(--colorImpairedGradientDark) 5px, var(--colorImpairedGradient) 5px, var(--colorImpairedGradient) 10px);
   }
 
   &:global(.fullColor.colorImpaired) {
@@ -108,15 +111,16 @@ $fullColorGradient: rgba(244, 245, 246, 0.2);
 }
 
 .missing {
-  border-left-color: $dangerColor !important;
+  border-left-color: var(--dangerColor) !important;
+  background-color: var(--dangerColor);
 
   &:global(.fullColor) {
     background-color: rgba(240, 80, 80, 0.6) !important;
   }
 
   &:global(.colorImpaired) {
-    border-left-color: color($dangerColor saturation(+15%)) !important;
-    background: repeating-linear-gradient(90deg, $colorImpairedGradientDark, $colorImpairedGradientDark 5px, $colorImpairedGradient 5px, $colorImpairedGradient 10px);
+    border-left-color: color(var(--dangerColor) saturation(+15%)) !important;
+    background: repeating-linear-gradient(90deg, var(--colorImpairedGradientDark), var(--colorImpairedGradientDark) 5px, var(--colorImpairedGradient) 5px, var(--colorImpairedGradient) 10px);
   }
 
   &:global(.fullColor.colorImpaired) {
@@ -125,14 +129,15 @@ $fullColorGradient: rgba(244, 245, 246, 0.2);
 }
 
 .unaired {
-  border-left-color: $primaryColor !important;
+  border-left-color: var(--primaryColor) !important;
+  background-color: var(--primaryColor);
 
   &:global(.fullColor) {
     background-color: rgba(93, 156, 236, 0.4) !important;
   }
 
   &:global(.colorImpaired) {
-    background: repeating-linear-gradient(90deg, $colorImpairedGradientDark, $colorImpairedGradientDark 5px, $colorImpairedGradient 5px, $colorImpairedGradient 10px);
+    background: repeating-linear-gradient(90deg, var(--colorImpairedGradientDark), var(--colorImpairedGradientDark) 5px, var(--colorImpairedGradient) 5px, var(--colorImpairedGradient) 10px);
   }
 
   &:global(.fullColor.colorImpaired) {
