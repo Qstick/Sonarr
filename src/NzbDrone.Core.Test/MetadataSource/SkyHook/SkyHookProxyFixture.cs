@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
@@ -24,7 +24,8 @@ namespace NzbDrone.Core.Test.MetadataSource.SkyHook
 
         [TestCase(75978, "Family Guy")]
         [TestCase(83462, "Castle (2009)")]
-        [TestCase(266189, "The Blacklist")]
+
+        // [TestCase(266189, "The Blacklist")]
         public void should_be_able_to_get_series_detail(int tvdbId, string title)
         {
             var details = Subject.GetSeriesInfo(tvdbId);
