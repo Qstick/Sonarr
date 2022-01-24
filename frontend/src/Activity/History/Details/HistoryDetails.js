@@ -23,7 +23,7 @@ function HistoryDetails(props) {
     const {
       indexer,
       releaseGroup,
-      preferredWordScore,
+      customFormatScore,
       nzbInfoUrl,
       downloadClient,
       downloadClientName,
@@ -64,10 +64,10 @@ function HistoryDetails(props) {
         }
 
         {
-          preferredWordScore && preferredWordScore !== '0' ?
+          customFormatScore && customFormatScore !== '0' ?
             <DescriptionListItem
-              title="Preferred Word Score"
-              data={formatPreferredWordScore(preferredWordScore)}
+              title="Custom Format Score"
+              data={formatPreferredWordScore(customFormatScore)}
             /> :
             null
         }
@@ -152,7 +152,7 @@ function HistoryDetails(props) {
 
   if (eventType === 'downloadFolderImported') {
     const {
-      preferredWordScore,
+      customFormatScore,
       droppedPath,
       importedPath
     } = data;
@@ -186,10 +186,10 @@ function HistoryDetails(props) {
         }
 
         {
-          preferredWordScore && preferredWordScore !== '0' ?
+          customFormatScore && customFormatScore !== '0' ?
             <DescriptionListItem
-              title="Preferred Word Score"
-              data={formatPreferredWordScore(preferredWordScore)}
+              title="Custom Format Score"
+              data={formatPreferredWordScore(customFormatScore)}
             /> :
             null
         }
@@ -200,7 +200,7 @@ function HistoryDetails(props) {
   if (eventType === 'episodeFileDeleted') {
     const {
       reason,
-      preferredWordScore
+      customFormatScore
     } = data;
 
     let reasonMessage = '';
@@ -232,10 +232,10 @@ function HistoryDetails(props) {
         />
 
         {
-          preferredWordScore && preferredWordScore !== '0' ?
+          customFormatScore && customFormatScore !== '0' ?
             <DescriptionListItem
-              title="Preferred Word Score"
-              data={formatPreferredWordScore(preferredWordScore)}
+              title="Custom Format Score"
+              data={formatPreferredWordScore(customFormatScore)}
             /> :
             null
         }

@@ -328,6 +328,7 @@ namespace NzbDrone.Integration.Test
             if (profile.Cutoff != cutoff.Id)
             {
                 profile.Cutoff = cutoff.Id;
+                profile.UpgradeAllowed = true;
                 profile = Profiles.Put(profile);
             }
 
