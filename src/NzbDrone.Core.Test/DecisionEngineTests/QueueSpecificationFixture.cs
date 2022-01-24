@@ -2,7 +2,9 @@ using System.Collections.Generic;
 using System.Linq;
 using FizzWare.NBuilder;
 using FluentAssertions;
+using Moq;
 using NUnit.Framework;
+using NzbDrone.Core.CustomFormats;
 using NzbDrone.Core.DecisionEngine.Specifications;
 using NzbDrone.Core.Download.TrackedDownloads;
 using NzbDrone.Core.Languages;
@@ -11,6 +13,7 @@ using NzbDrone.Core.Profiles.Languages;
 using NzbDrone.Core.Profiles.Qualities;
 using NzbDrone.Core.Qualities;
 using NzbDrone.Core.Queue;
+using NzbDrone.Core.Test.CustomFormats;
 using NzbDrone.Core.Test.Framework;
 using NzbDrone.Core.Tv;
 
@@ -33,11 +36,15 @@ namespace NzbDrone.Core.Test.DecisionEngineTests
         {
             Mocker.Resolve<UpgradableSpecification>();
 
+            CustomFormatsFixture.GivenCustomFormats();
+
             _series = Builder<Series>.CreateNew()
                                      .With(e => e.QualityProfile = new QualityProfile
                                                                 {
                                                                     UpgradeAllowed = true,
-                                                                    Items = Qualities.QualityFixture.GetDefaultQualities()
+                                                                    Items = Qualities.QualityFixture.GetDefaultQualities(),
+                                                                    FormatItems = CustomFormatsFixture.GetSampleFormatItems(),
+                                                                    MinFormatScore = 0
                                                                 })
                                      .With(l => l.LanguageProfile = new LanguageProfile
                                                                 {
@@ -69,8 +76,12 @@ namespace NzbDrone.Core.Test.DecisionEngineTests
                                                    .With(r => r.Series = _series)
                                                    .With(r => r.Episodes = new List<Episode> { _episode })
                                                    .With(r => r.ParsedEpisodeInfo = new ParsedEpisodeInfo { Quality = new QualityModel(Quality.DVD), Language = Language.Spanish })
-                                                   .With(r => r.PreferredWordScore = 0)
+                                                   .With(r => r.CustomFormats = new List<CustomFormat>())
                                                    .Build();
+
+            Mocker.GetMock<ICustomFormatCalculationService>()
+                  .Setup(x => x.ParseCustomFormat(It.IsAny<ParsedEpisodeInfo>()))
+                  .Returns(new List<CustomFormat>());
         }
 
         private void GivenEmptyQueue()
@@ -107,6 +118,7 @@ namespace NzbDrone.Core.Test.DecisionEngineTests
                                                       .With(r => r.Series = _otherSeries)
                                                       .With(r => r.Episodes = new List<Episode> { _episode })
                                                       .With(r => r.Release = _releaseInfo)
+                                                      .With(r => r.CustomFormats = new List<CustomFormat>())
                                                       .Build();
 
             GivenQueue(new List<RemoteEpisode> { remoteEpisode });
@@ -126,6 +138,7 @@ namespace NzbDrone.Core.Test.DecisionEngineTests
                     Quality = new QualityModel(Quality.DVD),
                     Language = Language.Spanish
                 })
+                .With(r => r.CustomFormats = new List<CustomFormat>())
                 .With(r => r.Release = _releaseInfo)
                 .Build();
 
@@ -149,6 +162,7 @@ namespace NzbDrone.Core.Test.DecisionEngineTests
                                                                                            Language = Language.Spanish
                                                                                        })
                                                       .With(r => r.Release = _releaseInfo)
+                                                      .With(r => r.CustomFormats = new List<CustomFormat>())
                                                       .Build();
 
             GivenQueue(new List<RemoteEpisode> { remoteEpisode });
@@ -170,6 +184,7 @@ namespace NzbDrone.Core.Test.DecisionEngineTests
                                                           Language = Language.English
                                                       })
                                                       .With(r => r.Release = _releaseInfo)
+                                                      .With(r => r.CustomFormats = new List<CustomFormat>())
                                                       .Build();
 
             GivenQueue(new List<RemoteEpisode> { remoteEpisode });
@@ -187,6 +202,7 @@ namespace NzbDrone.Core.Test.DecisionEngineTests
                                                                                            Quality = new QualityModel(Quality.DVD)
                                                                                        })
                                                       .With(r => r.Release = _releaseInfo)
+                                                      .With(r => r.CustomFormats = new List<CustomFormat>())
                                                       .Build();
 
             GivenQueue(new List<RemoteEpisode> { remoteEpisode });
@@ -196,7 +212,7 @@ namespace NzbDrone.Core.Test.DecisionEngineTests
         [Test]
         public void should_return_true_when_qualities_are_the_same_and_languages_are_the_same_with_higher_preferred_word_score()
         {
-            _remoteEpisode.PreferredWordScore = 1;
+            _remoteEpisode.CustomFormatScore = 1;
 
             var remoteEpisode = Builder<RemoteEpisode>.CreateNew()
                 .With(r => r.Series = _series)
@@ -207,6 +223,7 @@ namespace NzbDrone.Core.Test.DecisionEngineTests
                     Language = Language.Spanish,
                 })
                 .With(r => r.Release = _releaseInfo)
+                .With(r => r.CustomFormats = new List<CustomFormat>())
                 .Build();
 
             GivenQueue(new List<RemoteEpisode> { remoteEpisode });
@@ -225,6 +242,7 @@ namespace NzbDrone.Core.Test.DecisionEngineTests
                                                                                            Language = Language.Spanish,
                                                                                        })
                                                       .With(r => r.Release = _releaseInfo)
+                                                      .With(r => r.CustomFormats = new List<CustomFormat>())
                                                       .Build();
 
             GivenQueue(new List<RemoteEpisode> { remoteEpisode });
@@ -243,6 +261,7 @@ namespace NzbDrone.Core.Test.DecisionEngineTests
                                                           Language = Language.English,
                                                       })
                                                       .With(r => r.Release = _releaseInfo)
+                                                      .With(r => r.CustomFormats = new List<CustomFormat>())
                                                       .Build();
 
             GivenQueue(new List<RemoteEpisode> { remoteEpisode });
@@ -264,6 +283,7 @@ namespace NzbDrone.Core.Test.DecisionEngineTests
                     Language = Language.English
                 })
                 .With(r => r.Release = _releaseInfo)
+                .With(r => r.CustomFormats = new List<CustomFormat>())
                 .Build();
 
             GivenQueue(new List<RemoteEpisode> { remoteEpisode });
@@ -284,6 +304,7 @@ namespace NzbDrone.Core.Test.DecisionEngineTests
                                                                                            Language = Language.English
                                                                                        })
                                                       .With(r => r.Release = _releaseInfo)
+                                                      .With(r => r.CustomFormats = new List<CustomFormat>())
                                                       .Build();
 
             GivenQueue(new List<RemoteEpisode> { remoteEpisode });
@@ -302,6 +323,7 @@ namespace NzbDrone.Core.Test.DecisionEngineTests
                                                           Language = Language.English
                                                       })
                                                       .With(r => r.Release = _releaseInfo)
+                                                      .With(r => r.CustomFormats = new List<CustomFormat>())
                                                       .Build();
 
             GivenQueue(new List<RemoteEpisode> { remoteEpisode });
@@ -320,6 +342,7 @@ namespace NzbDrone.Core.Test.DecisionEngineTests
                                                           Language = Language.English
                                                       })
                                                       .With(r => r.Release = _releaseInfo)
+                                                      .With(r => r.CustomFormats = new List<CustomFormat>())
                                                       .Build();
 
             _remoteEpisode.Episodes.Add(_otherEpisode);
@@ -340,6 +363,7 @@ namespace NzbDrone.Core.Test.DecisionEngineTests
                                                           Language = Language.English
                                                       })
                                                       .With(r => r.Release = _releaseInfo)
+                                                      .With(r => r.CustomFormats = new List<CustomFormat>())
                                                       .Build();
 
             _remoteEpisode.Episodes.Add(_otherEpisode);
@@ -354,6 +378,7 @@ namespace NzbDrone.Core.Test.DecisionEngineTests
             var remoteEpisodes = Builder<RemoteEpisode>.CreateListOfSize(2)
                                                        .All()
                                                        .With(r => r.Series = _series)
+                                                       .With(r => r.CustomFormats = new List<CustomFormat>())
                                                        .With(r => r.ParsedEpisodeInfo = new ParsedEpisodeInfo
                                                                                         {
                                                                                             Quality =
@@ -387,6 +412,7 @@ namespace NzbDrone.Core.Test.DecisionEngineTests
                                                           Language = Language.Spanish
                                                       })
                                                       .With(r => r.Release = _releaseInfo)
+                                                      .With(r => r.CustomFormats = new List<CustomFormat>())
                                                       .Build();
 
             GivenQueue(new List<RemoteEpisode> { remoteEpisode });
@@ -408,6 +434,7 @@ namespace NzbDrone.Core.Test.DecisionEngineTests
                     Language = Language.English
                 })
                 .With(r => r.Release = _releaseInfo)
+                .With(r => r.CustomFormats = new List<CustomFormat>())
                 .Build();
 
             GivenQueue(new List<RemoteEpisode> { remoteEpisode });
@@ -429,6 +456,7 @@ namespace NzbDrone.Core.Test.DecisionEngineTests
                     Language = Language.Spanish
                 })
                 .With(r => r.Release = _releaseInfo)
+                .With(r => r.CustomFormats = new List<CustomFormat>())
                 .Build();
 
             GivenQueue(new List<RemoteEpisode> { remoteEpisode });
@@ -449,6 +477,7 @@ namespace NzbDrone.Core.Test.DecisionEngineTests
                     Language = Language.Spanish
                 })
                 .With(r => r.Release = _releaseInfo)
+                .With(r => r.CustomFormats = new List<CustomFormat>())
                 .Build();
 
             GivenQueue(new List<RemoteEpisode> { remoteEpisode }, TrackedDownloadState.FailedPending);

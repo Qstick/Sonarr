@@ -1,7 +1,11 @@
+using System.Collections.Generic;
 using FluentAssertions;
+using Moq;
 using NUnit.Framework;
+using NzbDrone.Core.CustomFormats;
 using NzbDrone.Core.DecisionEngine.Specifications;
 using NzbDrone.Core.Languages;
+using NzbDrone.Core.MediaFiles;
 using NzbDrone.Core.Profiles.Languages;
 using NzbDrone.Core.Profiles.Qualities;
 using NzbDrone.Core.Qualities;
@@ -13,7 +17,20 @@ namespace NzbDrone.Core.Test.DecisionEngineTests
     [TestFixture]
     public class CutoffSpecificationFixture : CoreTest<UpgradableSpecification>
     {
-        private static readonly int NoPreferredWordScore = 0;
+        [SetUp]
+        public void Setup()
+        {
+            Mocker.SetConstant<IUpgradableSpecification>(Mocker.Resolve<UpgradableSpecification>());
+
+            GivenOldCustomFormats(new List<CustomFormat>());
+        }
+
+        private void GivenOldCustomFormats(List<CustomFormat> formats)
+        {
+            Mocker.GetMock<ICustomFormatCalculationService>()
+                .Setup(x => x.ParseCustomFormat(It.IsAny<EpisodeFile>()))
+                .Returns(formats);
+        }
 
         [Test]
         public void should_return_true_if_current_episode_is_less_than_cutoff()
@@ -33,7 +50,7 @@ namespace NzbDrone.Core.Test.DecisionEngineTests
                 },
                 new QualityModel(Quality.DVD, new Revision(version: 2)),
                 Language.English,
-                NoPreferredWordScore).Should().BeTrue();
+                new List<CustomFormat>()).Should().BeTrue();
         }
 
         [Test]
@@ -54,7 +71,7 @@ namespace NzbDrone.Core.Test.DecisionEngineTests
                 },
                 new QualityModel(Quality.HDTV720p, new Revision(version: 2)),
                 Language.English,
-                NoPreferredWordScore).Should().BeFalse();
+                new List<CustomFormat>()).Should().BeFalse();
         }
 
         [Test]
@@ -75,7 +92,7 @@ namespace NzbDrone.Core.Test.DecisionEngineTests
                 },
                 new QualityModel(Quality.Bluray1080p, new Revision(version: 2)),
                 Language.English,
-                NoPreferredWordScore).Should().BeFalse();
+                new List<CustomFormat>()).Should().BeFalse();
         }
 
         [Test]
@@ -96,9 +113,8 @@ namespace NzbDrone.Core.Test.DecisionEngineTests
                 },
                 new QualityModel(Quality.HDTV720p, new Revision(version: 1)),
                 Language.English,
-                NoPreferredWordScore,
-                new QualityModel(Quality.HDTV720p, new Revision(version: 2)),
-                NoPreferredWordScore).Should().BeTrue();
+                new List<CustomFormat>(),
+                new QualityModel(Quality.HDTV720p, new Revision(version: 2))).Should().BeTrue();
         }
 
         [Test]
@@ -119,9 +135,8 @@ namespace NzbDrone.Core.Test.DecisionEngineTests
                 },
                 new QualityModel(Quality.HDTV720p, new Revision(version: 2)),
                 Language.English,
-                NoPreferredWordScore,
-                new QualityModel(Quality.Bluray1080p, new Revision(version: 2)),
-                NoPreferredWordScore).Should().BeFalse();
+                new List<CustomFormat>(),
+                new QualityModel(Quality.Bluray1080p, new Revision(version: 2))).Should().BeFalse();
         }
 
         [Test]
@@ -145,9 +160,8 @@ namespace NzbDrone.Core.Test.DecisionEngineTests
                 langProfile,
                 new QualityModel(Quality.HDTV720p, new Revision(version: 2)),
                 Language.English,
-                NoPreferredWordScore,
-                new QualityModel(Quality.Bluray1080p, new Revision(version: 2)),
-                NoPreferredWordScore).Should().BeTrue();
+                new List<CustomFormat>(),
+                new QualityModel(Quality.Bluray1080p, new Revision(version: 2))).Should().BeTrue();
         }
 
         [Test]
@@ -172,9 +186,8 @@ namespace NzbDrone.Core.Test.DecisionEngineTests
                 langProfile,
                 new QualityModel(Quality.HDTV720p, new Revision(version: 2)),
                 Language.Spanish,
-                NoPreferredWordScore,
-                new QualityModel(Quality.Bluray1080p, new Revision(version: 2)),
-                NoPreferredWordScore).Should().BeFalse();
+                new List<CustomFormat>(),
+                new QualityModel(Quality.Bluray1080p, new Revision(version: 2))).Should().BeFalse();
         }
 
         [Test]
@@ -199,9 +212,8 @@ namespace NzbDrone.Core.Test.DecisionEngineTests
                 langProfile,
                 new QualityModel(Quality.HDTV720p, new Revision(version: 2)),
                 Language.French,
-                NoPreferredWordScore,
-                new QualityModel(Quality.Bluray1080p, new Revision(version: 2)),
-                NoPreferredWordScore).Should().BeFalse();
+                new List<CustomFormat>(),
+                new QualityModel(Quality.Bluray1080p, new Revision(version: 2))).Should().BeFalse();
         }
 
         [Test]
@@ -226,9 +238,8 @@ namespace NzbDrone.Core.Test.DecisionEngineTests
                 langProfile,
                 new QualityModel(Quality.SDTV, new Revision(version: 2)),
                 Language.French,
-                NoPreferredWordScore,
-                new QualityModel(Quality.Bluray1080p, new Revision(version: 2)),
-                NoPreferredWordScore).Should().BeTrue();
+                new List<CustomFormat>(),
+                new QualityModel(Quality.Bluray1080p, new Revision(version: 2))).Should().BeTrue();
         }
 
         [Test]
@@ -253,7 +264,7 @@ namespace NzbDrone.Core.Test.DecisionEngineTests
                 langProfile,
                 new QualityModel(Quality.SDTV, new Revision(version: 2)),
                 Language.French,
-                NoPreferredWordScore).Should().BeTrue();
+                new List<CustomFormat>()).Should().BeTrue();
         }
 
         [Test]
@@ -278,9 +289,8 @@ namespace NzbDrone.Core.Test.DecisionEngineTests
                 langProfile,
                 new QualityModel(Quality.HDTV720p, new Revision(version: 2)),
                 Language.Spanish,
-                NoPreferredWordScore,
-                new QualityModel(Quality.Bluray1080p, new Revision(version: 2)),
-                10).Should().BeTrue();
+                new List<CustomFormat>(),
+                new QualityModel(Quality.Bluray1080p, new Revision(version: 2))).Should().BeTrue();
         }
 
         [Test]
@@ -305,9 +315,8 @@ namespace NzbDrone.Core.Test.DecisionEngineTests
                 langProfile,
                 new QualityModel(Quality.WEBDL1080p, new Revision(version: 1)),
                 Language.English,
-                NoPreferredWordScore,
-                new QualityModel(Quality.WEBDL1080p, new Revision(version: 2)),
-                NoPreferredWordScore).Should().BeTrue();
+                new List<CustomFormat>(),
+                new QualityModel(Quality.WEBDL1080p, new Revision(version: 2))).Should().BeTrue();
         }
 
         [Test]
@@ -332,9 +341,8 @@ namespace NzbDrone.Core.Test.DecisionEngineTests
                 langProfile,
                 new QualityModel(Quality.WEBDL1080p),
                 Language.English,
-                NoPreferredWordScore,
-                new QualityModel(Quality.Bluray1080p),
-                NoPreferredWordScore).Should().BeFalse();
+                new List<CustomFormat>(),
+                new QualityModel(Quality.Bluray1080p)).Should().BeFalse();
         }
 
         [Test]
@@ -359,9 +367,8 @@ namespace NzbDrone.Core.Test.DecisionEngineTests
                 langProfile,
                 new QualityModel(Quality.WEBDL1080p),
                 Language.English,
-                NoPreferredWordScore,
-                new QualityModel(Quality.Bluray1080p),
-                NoPreferredWordScore).Should().BeFalse();
+                new List<CustomFormat>(),
+                new QualityModel(Quality.Bluray1080p)).Should().BeFalse();
         }
     }
 }

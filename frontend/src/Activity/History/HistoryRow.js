@@ -195,13 +195,13 @@ class HistoryRow extends Component {
               );
             }
 
-            if (name === 'preferredWordScore') {
+            if (name === 'customFormatScore') {
               return (
                 <TableRowCell
                   key={name}
-                  className={styles.preferredWordScore}
+                  className={styles.customFormatScore}
                 >
-                  {formatPreferredWordScore(data.preferredWordScore)}
+                  {formatPreferredWordScore(data.customFormatScore)}
                 </TableRowCell>
               );
             }

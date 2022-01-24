@@ -115,7 +115,7 @@ class InteractiveSearchRow extends Component {
       leechers,
       quality,
       language,
-      preferredWordScore,
+      customFormatScore,
       sceneMapping,
       seasonNumber,
       episodeNumbers,
@@ -193,8 +193,8 @@ class InteractiveSearchRow extends Component {
           <EpisodeQuality quality={quality} />
         </TableRowCell>
 
-        <TableRowCell className={styles.preferredWordScore}>
-          {formatPreferredWordScore(preferredWordScore)}
+        <TableRowCell className={styles.customFormatScore}>
+          {formatPreferredWordScore(customFormatScore)}
         </TableRowCell>
 
         <TableRowCell className={styles.rejected}>
@@ -266,7 +266,7 @@ InteractiveSearchRow.propTypes = {
   leechers: PropTypes.number,
   quality: PropTypes.object.isRequired,
   language: PropTypes.object.isRequired,
-  preferredWordScore: PropTypes.number.isRequired,
+  customFormatScore: PropTypes.number.isRequired,
   sceneMapping: PropTypes.object,
   seasonNumber: PropTypes.number,
   episodeNumbers: PropTypes.arrayOf(PropTypes.number),

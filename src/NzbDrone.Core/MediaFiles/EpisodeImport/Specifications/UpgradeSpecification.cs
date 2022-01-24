@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using NLog;
 using NzbDrone.Core.Configuration;
 using NzbDrone.Core.DecisionEngine;
@@ -13,16 +13,12 @@ namespace NzbDrone.Core.MediaFiles.EpisodeImport.Specifications
     public class UpgradeSpecification : IImportDecisionEngineSpecification
     {
         private readonly IConfigService _configService;
-        private readonly IEpisodeFilePreferredWordCalculator _episodeFilePreferredWordCalculator;
         private readonly Logger _logger;
 
         public UpgradeSpecification(IConfigService configService,
-                                    IPreferredWordService preferredWordService,
-                                    IEpisodeFilePreferredWordCalculator episodeFilePreferredWordCalculator,
                                     Logger logger)
         {
             _configService = configService;
-            _episodeFilePreferredWordCalculator = episodeFilePreferredWordCalculator;
             _logger = logger;
         }
 
@@ -31,7 +27,6 @@ namespace NzbDrone.Core.MediaFiles.EpisodeImport.Specifications
             var downloadPropersAndRepacks = _configService.DownloadPropersAndRepacks;
             var qualityComparer = new QualityModelComparer(localEpisode.Series.QualityProfile);
             var languageComparer = new LanguageComparer(localEpisode.Series.LanguageProfile);
-            var preferredWordScore = localEpisode.PreferredWordScore;
 
             foreach (var episode in localEpisode.Episodes.Where(e => e.EpisodeFileId > 0))
             {
@@ -69,14 +64,6 @@ namespace NzbDrone.Core.MediaFiles.EpisodeImport.Specifications
                 {
                     _logger.Debug("This file isn't a language upgrade for all episodes. Skipping {0}", localEpisode.Path);
                     return Decision.Reject("Not a language upgrade for existing episode file(s)");
-                }
-
-                var episodeFilePreferredWordScore = _episodeFilePreferredWordCalculator.Calculate(localEpisode.Series, episodeFile);
-
-                if (qualityCompare == 0 && languageCompare == 0 && preferredWordScore < episodeFilePreferredWordScore)
-                {
-                    _logger.Debug("This file isn't a preferred word upgrade for all episodes. Skipping {0}", localEpisode.Path);
-                    return Decision.Reject("Not a preferred word upgrade for existing episode file(s)");
                 }
             }
 
