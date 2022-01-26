@@ -1,4 +1,4 @@
-﻿using System.Data;
+using System.Data;
 using FluentMigrator;
 using NzbDrone.Core.Datastore.Migration.Framework;
 
@@ -16,7 +16,7 @@ namespace NzbDrone.Core.Datastore.Migration
                   .WithColumn("Tags").AsString().NotNullable();
 
             Execute.WithConnection(ConvertRestrictions);
-            Execute.Sql("DELETE FROM Config WHERE [Key] = 'releaserestrictions'");
+            Delete.FromTable("Config").Row(new { Key = "releaserestrictions" });
         }
 
         private void ConvertRestrictions(IDbConnection conn, IDbTransaction tran)
@@ -24,7 +24,7 @@ namespace NzbDrone.Core.Datastore.Migration
             using (IDbCommand getRestictionsCmd = conn.CreateCommand())
             {
                 getRestictionsCmd.Transaction = tran;
-                getRestictionsCmd.CommandText = @"SELECT [Value] FROM Config WHERE [Key] = 'releaserestrictions'";
+                getRestictionsCmd.CommandText = @"SELECT ""Value"" FROM ""Config"" WHERE ""Key"" = 'releaserestrictions'";
 
                 using (IDataReader configReader = getRestictionsCmd.ExecuteReader())
                 {
@@ -36,7 +36,7 @@ namespace NzbDrone.Core.Datastore.Migration
                         using (IDbCommand insertCmd = conn.CreateCommand())
                         {
                             insertCmd.Transaction = tran;
-                            insertCmd.CommandText = "INSERT INTO Restrictions (Ignored, Tags) VALUES (?, '[]')";
+                            insertCmd.CommandText = "INSERT INTO \"Restrictions\" (\"Ignored\", \"Tags\") VALUES (?, '[]')";
                             insertCmd.AddParameter(restrictions);
 
                             insertCmd.ExecuteNonQuery();

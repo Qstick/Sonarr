@@ -22,7 +22,7 @@ namespace NzbDrone.Core.Datastore.Migration
             using (IDbCommand configCmd = conn.CreateCommand())
             {
                 configCmd.Transaction = tran;
-                configCmd.CommandText = @"SELECT * FROM Config";
+                configCmd.CommandText = @"SELECT * FROM ""Config""";
                 using (IDataReader configReader = configCmd.ExecuteReader())
                 {
                     var keyIndex = configReader.GetOrdinal("Key");
@@ -121,7 +121,7 @@ namespace NzbDrone.Core.Datastore.Migration
         {
             using (IDbCommand updateCmd = conn.CreateCommand())
             {
-                var text = string.Format("INSERT INTO DownloadClients (Enable, Name, Implementation, Settings, ConfigContract, Protocol) VALUES (1, ?, ?, ?, ?, ?)");
+                var text = string.Format("INSERT INTO \"DownloadClients\" (\"Enable\", \"Name\", \"Implementation\", \"Settings\", \"ConfigContract\", \"Protocol\") VALUES (1, ?, ?, ?, ?, ?)");
                 updateCmd.AddParameter(name);
                 updateCmd.AddParameter(implementation);
                 updateCmd.AddParameter(settings);
@@ -138,7 +138,7 @@ namespace NzbDrone.Core.Datastore.Migration
         {
             using (IDbCommand updateCmd = conn.CreateCommand())
             {
-                var text = "DELETE FROM Config WHERE [KEY] IN ('nzbgetusername', 'nzbgetpassword', 'nzbgethost', 'nzbgetport', " +
+                var text = "DELETE FROM \"Config\" WHERE [KEY] IN ('nzbgetusername', 'nzbgetpassword', 'nzbgethost', 'nzbgetport', " +
                            "'nzbgettvcategory', 'nzbgetrecenttvpriority', 'nzbgetoldertvpriority', 'sabhost', 'sabport', " +
                            "'sabapikey', 'sabusername', 'sabpassword', 'sabtvcategory', 'sabrecenttvpriority', " +
                            "'saboldertvpriority', 'sabusessl', 'downloadclient', 'blackholefolder', 'pneumaticfolder')";

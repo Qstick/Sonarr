@@ -9,6 +9,7 @@ using DryIoc;
 using DryIoc.Microsoft.DependencyInjection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Hosting.WindowsServices;
 using NLog;
@@ -20,6 +21,8 @@ using NzbDrone.Common.Instrumentation;
 using NzbDrone.Common.Instrumentation.Extensions;
 using NzbDrone.Core.Configuration;
 using NzbDrone.Core.Datastore.Extensions;
+
+using PostgresOptions = NzbDrone.Core.Datastore.PostgresOptions;
 
 namespace NzbDrone.Host
 {
@@ -126,6 +129,10 @@ namespace NzbDrone.Host
                         .AddDatabase()
                         .AddStartupContext(context);
                 })
+                .ConfigureServices(services =>
+                {
+                    services.Configure<PostgresOptions>(config.GetSection("Sonarr:Postgres"));
+                })
                 .ConfigureWebHost(builder =>
                 {
                     builder.UseConfiguration(config);
@@ -200,6 +207,7 @@ namespace NzbDrone.Host
                 return new ConfigurationBuilder()
                     .AddXmlFile(configPath, optional: true, reloadOnChange: false)
                     .AddInMemoryCollection(new List<KeyValuePair<string, string>> { new ("dataProtectionFolder", appFolder.GetDataProtectionPath()) })
+                    .AddEnvironmentVariables()
                     .Build();
             }
             catch (InvalidDataException ex)
