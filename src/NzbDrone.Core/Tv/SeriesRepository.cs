@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Dapper;
 using NzbDrone.Core.Datastore;
-using NzbDrone.Core.Exceptions;
 using NzbDrone.Core.Messaging.Events;
 
 namespace NzbDrone.Core.Tv
@@ -53,7 +52,12 @@ namespace NzbDrone.Core.Tv
 
         public List<Series> FindByTitleInexact(string cleanTitle)
         {
-            var builder = Builder().Where($"instr(@cleanTitle, Series.[CleanTitle])", new { cleanTitle = cleanTitle });
+            var builder = Builder().Where($"instr(@cleanTitle, \"Series\".\"CleanTitle\")", new { cleanTitle = cleanTitle });
+
+            if (_database.DatabaseType == DatabaseType.PostgreSQL)
+            {
+                builder = Builder().Where($"(strpos(@cleanTitle, \"Series\".\"CleanTitle\") > 0)", new { cleanTitle = cleanTitle });
+            }
 
             return Query(builder).ToList();
         }
@@ -78,7 +82,7 @@ namespace NzbDrone.Core.Tv
         {
             using (var conn = _database.OpenConnection())
             {
-                return conn.Query<int>("SELECT TvdbId FROM Series").ToList();
+                return conn.Query<int>("SELECT \"TvdbId\" FROM \"Series\"").ToList();
             }
         }
 
@@ -86,7 +90,7 @@ namespace NzbDrone.Core.Tv
         {
             using (var conn = _database.OpenConnection())
             {
-                var strSql = "SELECT Id AS [Key], Path AS [Value] FROM Series";
+                var strSql = "SELECT \"Id\" AS Key, \"Path\" AS Value FROM \"Series\"";
                 return conn.Query<KeyValuePair<int, string>>(strSql).ToDictionary(x => x.Key, x => x.Value);
             }
         }

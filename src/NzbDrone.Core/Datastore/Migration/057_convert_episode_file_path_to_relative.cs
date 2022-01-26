@@ -1,4 +1,4 @@
-﻿using System.Data;
+using System.Data;
 using System.IO;
 using FluentMigrator;
 using NzbDrone.Core.Datastore.Migration.Framework;
@@ -23,7 +23,7 @@ namespace NzbDrone.Core.Datastore.Migration
             using (IDbCommand getSeriesCmd = conn.CreateCommand())
             {
                 getSeriesCmd.Transaction = tran;
-                getSeriesCmd.CommandText = @"SELECT Id, Path FROM Series";
+                getSeriesCmd.CommandText = @"SELECT ""Id"", ""Path"" FROM ""Series""";
                 using (IDataReader seriesReader = getSeriesCmd.ExecuteReader())
                 {
                     while (seriesReader.Read())
@@ -34,7 +34,7 @@ namespace NzbDrone.Core.Datastore.Migration
                         using (IDbCommand updateCmd = conn.CreateCommand())
                         {
                             updateCmd.Transaction = tran;
-                            updateCmd.CommandText = "UPDATE EpisodeFiles SET RelativePath = REPLACE(Path, ?, '') WHERE SeriesId = ?";
+                            updateCmd.CommandText = "UPDATE \"EpisodeFiles\" SET \"RelativePath\" = REPLACE(\"Path\", ?, '') WHERE \"SeriesId\" = ?";
                             updateCmd.AddParameter(seriesPath);
                             updateCmd.AddParameter(seriesId);
 
