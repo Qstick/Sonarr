@@ -1,26 +1,34 @@
 const sonarrBlue = '#35c5f4';
+const darkGray = '#888';
+const gray = '#adadad';
+const black = '#000';
+const white = '#fff';
+const offWhite = '#f5f7fa';
+const purple = '#7a43b6';
+const pink = '#ff69b4';
+const lightGray = '#ddd';
 
 module.exports = {
   textColor: '#ccc',
   defaultColor: '#ccc',
   disabledColor: '#999',
   dimColor: '#555',
-  black: '#000',
-  white: '#fff',
-  offWhite: '#f5f7fa',
+  black: black,
+  white: white,
+  offWhite: offWhite,
   primaryColor: '#5d9cec',
   selectedColor: '#f9be03',
   successColor: '#00853d',
   dangerColor: '#f05050',
   warningColor: '#ffa500',
   infoColor: '#5d9cec',
-  purple: '#7a43b6',
-  pink: '#ff69b4',
+  purple: purple,
+  pink: pink,
   sonarrBlue,
   helpTextColor: '#909293',
-  darkGray: '#888',
-  gray: '#adadad',
-  lightGray: '#ddd',
+  darkGray: darkGray,
+  gray: gray,
+  lightGray: lightGray,
 
   // Theme Colors
 
@@ -203,5 +211,19 @@ module.exports = {
   //
   // Table
 
-  tableRowHoverBackgroundColor: 'rgba(255, 255, 255, 0.08)'
+  tableRowHoverBackgroundColor: 'rgba(255, 255, 255, 0.08)',
+
+  //
+  // Series
+
+  addSeriesBackgroundColor: '#2a2a2a',
+  seriesBackgroundColor: '#2a2a2a',
+  searchIconContainerBackgroundColor: '#2b2b2b',
+  collapseButtonBackgroundColor: '#2a2a2a',
+
+  //
+  // Season
+
+  seasonBackgroundColor: '#424242',
+  episodesBackgroundColor: '#2a2a2a',
 };
