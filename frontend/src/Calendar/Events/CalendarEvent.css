@@ -4,8 +4,8 @@ $fullColorGradient: rgba(244, 245, 246, 0.2);
   overflow-x: hidden;
   margin: 4px 2px;
   padding: 5px;
-  border-bottom: 1px solid var(--borderColor);
-  border-left: 4px solid var(--borderColor);
+  /*border-bottom: 1px solid var(--borderColor);
+  border-left: 4px solid var(--borderColor);*/
   font-size: 12px;
 
   &:global(.colorImpaired) {
@@ -19,7 +19,7 @@ $fullColorGradient: rgba(244, 245, 246, 0.2);
 }
 
 .episodeInfo {
-  color: var(--calendarTextDim);
+  color: var(--offWhite);
 }
 
 .seriesTitle,
@@ -30,11 +30,12 @@ $fullColorGradient: rgba(244, 245, 246, 0.2);
 }
 
 .seriesTitle {
-  color: #3a3f51;
+  color: var(--white);
   font-size: $defaultFontSize;
 }
 
 .absoluteEpisodeNumber {
+  color: var(--offWhite);
   margin-left: 3px;
 }
 
@@ -48,7 +49,7 @@ $fullColorGradient: rgba(244, 245, 246, 0.2);
 }
 
 .airTime {
-  color: var(--calendarTextDim);
+  color: var(--offWhite);
 }
 
 /*
@@ -57,6 +58,7 @@ $fullColorGradient: rgba(244, 245, 246, 0.2);
 
 .downloaded {
   border-left-color: var(--successColor) !important;
+  background-color: var(--successColor);
 
   &:global(.fullColor) {
     background-color: rgba(39, 194, 76, 0.4) !important;
@@ -69,6 +71,7 @@ $fullColorGradient: rgba(244, 245, 246, 0.2);
 
 .downloading {
   border-left-color: var(--purple) !important;
+  background-color: var(--purple);
 
   &:global(.fullColor) {
     background-color: rgba(122, 67, 182, 0.4) !important;
@@ -77,6 +80,7 @@ $fullColorGradient: rgba(244, 245, 246, 0.2);
 
 .unmonitored {
   border-left-color: var(--gray) !important;
+  background-color: var(--gray);
 
   &:global(.fullColor) {
     background-color: rgba(173, 173, 173, 0.5) !important;
@@ -93,6 +97,7 @@ $fullColorGradient: rgba(244, 245, 246, 0.2);
 
 .onAir {
   border-left-color: var(--warningColor) !important;
+  background-color: var(--warningColor);
 
   &:global(.fullColor) {
     background-color: rgba(255, 165, 0, 0.6) !important;
@@ -109,6 +114,7 @@ $fullColorGradient: rgba(244, 245, 246, 0.2);
 
 .missing {
   border-left-color: var(--dangerColor) !important;
+  background-color: var(--dangerColor);
 
   &:global(.fullColor) {
     background-color: rgba(240, 80, 80, 0.6) !important;
@@ -126,6 +132,7 @@ $fullColorGradient: rgba(244, 245, 246, 0.2);
 
 .unaired {
   border-left-color: var(--primaryColor) !important;
+  background-color: var(--primaryColor);
 
   &:global(.fullColor) {
     background-color: rgba(93, 156, 236, 0.4) !important;

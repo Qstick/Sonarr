@@ -9,13 +9,16 @@
 .underlay {
   @add-mixin cover;
 
-  background-color: var(--white);
+  background-color: var(--addSeriesBackgroundColor);
   transition: background 500ms;
 
   &:hover {
-    background-color: #eaf2ff;
+    background-color: var(--pageBackground);
     color: inherit;
     text-decoration: none;
+    
+    box-shadow: 0 0 12px var(--black);
+    transition: all 200ms ease-in;
   }
 }
 
