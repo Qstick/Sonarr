@@ -13,22 +13,22 @@ module.exports = {
   defaultColor: '#333',
   disabledColor: '#999',
   dimColor: '#555',
-  black: black,
-  white: white,
-  offWhite: offWhite,
+  black,
+  white,
+  offWhite,
   primaryColor: '#5d9cec',
   selectedColor: '#f9be03',
   successColor: '#27c24c',
   dangerColor: '#f05050',
   warningColor: '#ffa500',
   infoColor: sonarrBlue,
-  purple: purple,
-  pink: pink,
+  purple,
+  pink,
   sonarrBlue,
   helpTextColor: '#909293',
-  darkGray: darkGray,
-  gray: gray,
-  lightGray: lightGray,
+  darkGray,
+  gray,
+  lightGray,
 
   // Theme Colors
 
@@ -225,5 +225,5 @@ module.exports = {
   // Season
 
   seasonBackgroundColor: white,
-  episodesBackgroundColor: offWhite,
+  episodesBackgroundColor: offWhite
 };
