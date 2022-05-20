@@ -46,6 +46,7 @@ module.exports = {
   // Labels
   inverseLabelColor: '#ddd',
   inverseLabelTextColor: sonarrBlue,
+  disabledLabelColor: '#838383',
 
   // Links
   defaultLinkHoverColor: '#fff',
@@ -189,10 +190,11 @@ module.exports = {
   //
   // Popover
 
-  popoverTitleBackgroundColor: '#f7f7f7',
-  popoverTitleBorderColor: '#ebebeb',
+  popoverTitleBackgroundColor: '#424242',
+  popoverTitleBorderColor: '#2a2a2a',
+  popoverBodyBackgroundColor: '#2a2a2a',
   popoverShadowColor: 'rgba(0, 0, 0, 0.2)',
-  popoverArrowBorderColor: '#fff',
+  popoverArrowBorderColor: '#2a2a2a',
 
   popoverTitleBackgroundInverseColor: '#595959',
   popoverTitleBorderInverseColor: '#707070',
@@ -225,5 +227,11 @@ module.exports = {
   // Season
 
   seasonBackgroundColor: '#424242',
-  episodesBackgroundColor: '#2a2a2a'
+  episodesBackgroundColor: '#2a2a2a',
+
+  //
+  // misc
+
+  progressBarBackgroundColor: '#727070',
+  logEventsBackgroundColor: '#2a2a2a'
 };

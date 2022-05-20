@@ -46,6 +46,7 @@ module.exports = {
   // Labels
   inverseLabelColor: '#ddd',
   inverseLabelTextColor: sonarrBlue,
+  disabledLabelColor: '#999',
 
   // Links
   defaultLinkHoverColor: '#fff',
@@ -191,6 +192,7 @@ module.exports = {
 
   popoverTitleBackgroundColor: '#f7f7f7',
   popoverTitleBorderColor: '#ebebeb',
+  popoverBodyBackgroundColor: '#e9e9e9',
   popoverShadowColor: 'rgba(0, 0, 0, 0.2)',
   popoverArrowBorderColor: '#fff',
 
@@ -225,5 +227,11 @@ module.exports = {
   // Season
 
   seasonBackgroundColor: white,
-  episodesBackgroundColor: offWhite
+  episodesBackgroundColor: offWhite,
+
+  //
+  // misc
+
+  progressBarBackgroundColor: '#fff',
+  logEventsBackgroundColor: '#fff'
 };

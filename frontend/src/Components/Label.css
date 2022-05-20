@@ -35,7 +35,7 @@
   background-color: var(--disabledColor);
 
   &.outline {
-    color: var(--disabledColor);
+    color: var(--white);
   }
 }
 
@@ -109,5 +109,5 @@
 /** Outline **/
 
 .outline {
-  background-color: var(--white);
+  background-color: var(--disabledLabelColor);
 }

@@ -55,7 +55,7 @@
   border-radius: 4px;
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
-  background-color: #edf1f2;
+  background-color: var(--searchIconContainerBackgroundColor);
   text-align: center;
   line-height: 33px;
 }
