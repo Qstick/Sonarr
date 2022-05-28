@@ -80,8 +80,8 @@ module.exports = {
   inputErrorBoxShadowColor: 'rgba(240, 80, 80, 0.6)',
   inputWarningBorderColor: '#ffa500',
   inputWarningBoxShadowColor: 'rgba(255, 165, 0, 0.6)',
-  colorImpairedGradient: '#ffffff',
-  colorImpairedGradientDark: '#f4f5f6',
+  colorImpairedGradient: '#b3b3b3',
+  colorImpairedGradientDark: '#919191',
   colorImpairedDangerGradient: '#d84848',
   colorImpairedWarningGradient: '#e59400',
   colorImpairedPrimaryGradient: '#538cd4',
@@ -210,11 +210,14 @@ module.exports = {
   calendarBorderColor: '#cecece',
   calendarTextDim: '#666',
   calendarTextDimAlternate: '#eee',
+  calendarTextColor: black,
+  calendarTextColorAlternate: darkGray,
 
   //
   // Table
 
   tableRowHoverBackgroundColor: '#fafbfc',
+  tableBorderColor: lightGray,
 
   //
   // Series
@@ -229,6 +232,7 @@ module.exports = {
 
   seasonBackgroundColor: white,
   episodesBackgroundColor: offWhite,
+  allEpisodesSeasonPassBackgroundColor: '#e0ffe0',
 
   //
   // misc
