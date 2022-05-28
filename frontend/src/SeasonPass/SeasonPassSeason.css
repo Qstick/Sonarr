@@ -20,5 +20,5 @@
 }
 
 .allEpisodes {
-  background-color: #e0ffe0;
+  background-color: var(--allEpisodesSeasonPassBackgroundColor);
 }
