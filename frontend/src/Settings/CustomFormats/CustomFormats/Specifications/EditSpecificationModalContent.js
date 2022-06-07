@@ -133,7 +133,7 @@ function EditSpecificationModalContent(props) {
         <Button
           onPress={onCancelPress}
         >
-          Canel
+          Cancel
         </Button>
 
         <SpinnerErrorButton
