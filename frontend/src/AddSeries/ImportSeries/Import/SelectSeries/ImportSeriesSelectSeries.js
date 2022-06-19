@@ -5,6 +5,7 @@ import FormInputButton from 'Components/Form/FormInputButton';
 import TextInput from 'Components/Form/TextInput';
 import Icon from 'Components/Icon';
 import Link from 'Components/Link/Link';
+import SpinnerButton from 'Components/Link/SpinnerButton';
 import LoadingIndicator from 'Components/Loading/LoadingIndicator';
 import Portal from 'Components/Portal';
 import { icons, kinds } from 'Helpers/Props';
@@ -241,7 +242,7 @@ class ImportSeriesSelectSeries extends Component {
                           <FormInputButton
                             kind={kinds.DEFAULT}
                             spinnerIcon={icons.REFRESH}
-                            canSpin={true}
+                            ButtonComponent={SpinnerButton}
                             isSpinning={isFetching}
                             onPress={this.onRefreshPress}
                           >

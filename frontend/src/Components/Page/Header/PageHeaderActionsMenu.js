@@ -11,7 +11,7 @@ import styles from './PageHeaderActionsMenu.css';
 
 function PageHeaderActionsMenu(props) {
   const {
-    formsAuth,
+    cookieAuth,
     onKeyboardShortcutsPress,
     onRestartPress,
     onShutdownPress
@@ -55,22 +55,20 @@ function PageHeaderActionsMenu(props) {
           </MenuItem>
 
           {
-            formsAuth &&
-              <div className={styles.separator} />
-          }
-
-          {
-            formsAuth &&
-              <MenuItem
-                to={`${window.Sonarr.urlBase}/logout`}
-                noRouter={true}
-              >
-                <Icon
-                  className={styles.itemIcon}
-                  name={icons.LOGOUT}
-                />
-                Logout
-              </MenuItem>
+            cookieAuth &&
+              <>
+                <div className={styles.separator} />
+                <MenuItem
+                  to={`${window.Sonarr.urlBase}/logout?ReturnUrl=/`}
+                  noRouter={true}
+                >
+                  <Icon
+                    className={styles.itemIcon}
+                    name={icons.LOGOUT}
+                  />
+                  Logout
+                </MenuItem>
+              </>
           }
         </MenuContent>
       </Menu>
@@ -79,7 +77,7 @@ function PageHeaderActionsMenu(props) {
 }
 
 PageHeaderActionsMenu.propTypes = {
-  formsAuth: PropTypes.bool.isRequired,
+  cookieAuth: PropTypes.bool.isRequired,
   onKeyboardShortcutsPress: PropTypes.func.isRequired,
   onRestartPress: PropTypes.func.isRequired,
   onShutdownPress: PropTypes.func.isRequired

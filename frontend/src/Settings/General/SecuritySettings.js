@@ -5,6 +5,7 @@ import FormGroup from 'Components/Form/FormGroup';
 import FormInputButton from 'Components/Form/FormInputButton';
 import FormInputGroup from 'Components/Form/FormInputGroup';
 import FormLabel from 'Components/Form/FormLabel';
+import OAuthInputConnector from 'Components/Form/OAuthInputConnector';
 import Icon from 'Components/Icon';
 import ClipboardButton from 'Components/Link/ClipboardButton';
 import ConfirmModal from 'Components/Modal/ConfirmModal';
@@ -14,8 +15,10 @@ export const authenticationRequiredWarning = 'To prevent remote access without a
 
 export const authenticationMethodOptions = [
   { key: 'none', value: 'None', isDisabled: true },
-  { key: 'basic', value: 'Basic (Browser Popup)' },
-  { key: 'forms', value: 'Forms (Login Page)' }
+  { key: 'basic', value: 'Basic (Browser Popup, insecure over HTTP)' },
+  { key: 'forms', value: 'Forms (Login Page)' },
+  { key: 'plex', value: 'Plex' },
+  { key: 'oidc', value: 'OpenID Connect' }
 ];
 
 export const authenticationRequiredOptions = [
@@ -28,6 +31,22 @@ const certificateValidationOptions = [
   { key: 'disabledForLocalAddresses', value: 'Disabled for Local Addresses' },
   { key: 'disabled', value: 'Disabled' }
 ];
+
+const oauthData = {
+  implementation: { value: 'PlexImport' },
+  configContract: { value: 'PlexListSettings' },
+  fields: [
+    {
+      type: 'textbox',
+      name: 'accessToken'
+    },
+    {
+      type: 'oAuth',
+      name: 'signIn',
+      value: 'startAuth'
+    }
+  ]
+};
 
 class SecuritySettings extends Component {
 
@@ -68,6 +87,7 @@ class SecuritySettings extends Component {
   render() {
     const {
       settings,
+      plexServersPopulated,
       isResettingApiKey,
       onInputChange
     } = this.props;
@@ -77,11 +97,19 @@ class SecuritySettings extends Component {
       authenticationRequired,
       username,
       password,
+      plexAuthServer,
+      plexRequireOwner,
+      oidcClientId,
+      oidcClientSecret,
+      oidcAuthority,
       apiKey,
       certificateValidation
     } = settings;
 
     const authenticationEnabled = authenticationMethod && authenticationMethod.value !== 'none';
+    const showUserPass = authenticationMethod && ['basic', 'forms'].includes(authenticationMethod.value);
+    const plexEnabled = authenticationMethod && authenticationMethod.value === 'plex';
+    const oidcEnabled = authenticationMethod && authenticationMethod.value === 'oidc';
 
     return (
       <FieldSet legend="Security">
@@ -92,7 +120,7 @@ class SecuritySettings extends Component {
             type={inputTypes.SELECT}
             name="authenticationMethod"
             values={authenticationMethodOptions}
-            helpText="Require Username and Password to access Sonarr"
+            helpText="Require login to access Sonarr"
             helpTextWarning={authenticationRequiredWarning}
             onChange={onInputChange}
             {...authenticationMethod}
@@ -117,33 +145,107 @@ class SecuritySettings extends Component {
         }
 
         {
-          authenticationEnabled ?
-            <FormGroup>
-              <FormLabel>Username</FormLabel>
+          showUserPass &&
+            <>
+              <FormGroup>
+                <FormLabel>Username</FormLabel>
 
-              <FormInputGroup
-                type={inputTypes.TEXT}
-                name="username"
-                onChange={onInputChange}
-                {...username}
-              />
-            </FormGroup> :
-            null
+                <FormInputGroup
+                  type={inputTypes.TEXT}
+                  name="username"
+                  onChange={onInputChange}
+                  {...username}
+                />
+              </FormGroup>
+
+              <FormGroup>
+                <FormLabel>Password</FormLabel>
+
+                <FormInputGroup
+                  type={inputTypes.PASSWORD}
+                  name="password"
+                  onChange={onInputChange}
+                  {...password}
+                />
+              </FormGroup>
+            </>
         }
 
         {
-          authenticationEnabled ?
-            <FormGroup>
-              <FormLabel>Password</FormLabel>
+          plexEnabled &&
+            <>
+              <FormGroup>
+                <FormLabel>Plex Server</FormLabel>
 
-              <FormInputGroup
-                type={inputTypes.PASSWORD}
-                name="password"
-                onChange={onInputChange}
-                {...password}
-              />
-            </FormGroup> :
-            null
+                <FormInputGroup
+                  type={inputTypes.PLEX_MACHINE_SELECT}
+                  name="plexAuthServer"
+                  buttons={[
+                    <FormInputButton
+                      key="auth"
+                      ButtonComponent={OAuthInputConnector}
+                      label={plexServersPopulated ? <Icon name={icons.REFRESH} /> : 'Fetch'}
+                      name="plexAuth"
+                      provider="importList"
+                      providerData={oauthData}
+                      section="settings.importLists"
+                      onChange={onInputChange}
+                    />
+                  ]}
+                  onChange={onInputChange}
+                  {...plexAuthServer}
+                />
+              </FormGroup>
+
+              <FormGroup>
+                <FormLabel>Restrict Access to Server Owner</FormLabel>
+
+                <FormInputGroup
+                  type={inputTypes.CHECK}
+                  name="plexRequireOwner"
+                  onChange={onInputChange}
+                  {...plexRequireOwner}
+                />
+              </FormGroup>
+            </>
+        }
+
+        {
+          oidcEnabled &&
+            <>
+              <FormGroup>
+                <FormLabel>Authority</FormLabel>
+
+                <FormInputGroup
+                  type={inputTypes.TEXT}
+                  name="oidcAuthority"
+                  onChange={onInputChange}
+                  {...oidcAuthority}
+                />
+              </FormGroup>
+
+              <FormGroup>
+                <FormLabel>ClientId</FormLabel>
+
+                <FormInputGroup
+                  type={inputTypes.TEXT}
+                  name="oidcClientId"
+                  onChange={onInputChange}
+                  {...oidcClientId}
+                />
+              </FormGroup>
+
+              <FormGroup>
+                <FormLabel>ClientSecret</FormLabel>
+
+                <FormInputGroup
+                  type={inputTypes.PASSWORD}
+                  name="oidcClientSecret"
+                  onChange={onInputChange}
+                  {...oidcClientSecret}
+                />
+              </FormGroup>
+            </>
         }
 
         <FormGroup>
@@ -207,6 +309,7 @@ class SecuritySettings extends Component {
 
 SecuritySettings.propTypes = {
   settings: PropTypes.object.isRequired,
+  plexServersPopulated: PropTypes.bool.isRequired,
   isResettingApiKey: PropTypes.bool.isRequired,
   onInputChange: PropTypes.func.isRequired,
   onConfirmResetApiKey: PropTypes.func.isRequired

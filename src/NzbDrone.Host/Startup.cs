@@ -20,7 +20,6 @@ using NzbDrone.Core.Datastore;
 using NzbDrone.Core.Instrumentation;
 using NzbDrone.Host;
 using NzbDrone.Host.AccessControl;
-using NzbDrone.Http.Authentication;
 using NzbDrone.SignalR;
 using Sonarr.Api.V3.System;
 using Sonarr.Http;

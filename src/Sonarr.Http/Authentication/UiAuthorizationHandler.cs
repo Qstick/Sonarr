@@ -9,7 +9,7 @@ using NzbDrone.Core.Configuration.Events;
 using NzbDrone.Core.Messaging.Events;
 using Sonarr.Http.Extensions;
 
-namespace NzbDrone.Http.Authentication
+namespace Sonarr.Http.Authentication
 {
     public class UiAuthorizationHandler : AuthorizationHandler<BypassableDenyAnonymousAuthorizationRequirement>, IAuthorizationRequirement, IHandle<ConfigSavedEvent>
     {
