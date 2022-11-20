@@ -2,9 +2,9 @@ using System;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NzbDrone.Core.Configuration;
-using NzbDrone.Http.Ping;
+using Sonarr.Http.Ping;
 
-namespace NzbDrone.Http
+namespace Sonarr.Http
 {
     public class PingController : Controller
     {

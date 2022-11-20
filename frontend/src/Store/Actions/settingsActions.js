@@ -17,6 +17,7 @@ import metadata from './Settings/metadata';
 import naming from './Settings/naming';
 import namingExamples from './Settings/namingExamples';
 import notifications from './Settings/notifications';
+import plex from './Settings/plex';
 import qualityDefinitions from './Settings/qualityDefinitions';
 import qualityProfiles from './Settings/qualityProfiles';
 import releaseProfiles from './Settings/releaseProfiles';
@@ -39,6 +40,7 @@ export * from './Settings/metadata';
 export * from './Settings/naming';
 export * from './Settings/namingExamples';
 export * from './Settings/notifications';
+export * from './Settings/plex';
 export * from './Settings/qualityDefinitions';
 export * from './Settings/qualityProfiles';
 export * from './Settings/releaseProfiles';
@@ -72,6 +74,7 @@ export const defaultState = {
   naming: naming.defaultState,
   namingExamples: namingExamples.defaultState,
   notifications: notifications.defaultState,
+  plex: plex.defaultState,
   qualityDefinitions: qualityDefinitions.defaultState,
   qualityProfiles: qualityProfiles.defaultState,
   releaseProfiles: releaseProfiles.defaultState,
@@ -113,6 +116,7 @@ export const actionHandlers = handleThunks({
   ...naming.actionHandlers,
   ...namingExamples.actionHandlers,
   ...notifications.actionHandlers,
+  ...plex.actionHandlers,
   ...qualityDefinitions.actionHandlers,
   ...qualityProfiles.actionHandlers,
   ...releaseProfiles.actionHandlers,
@@ -145,6 +149,7 @@ export const reducers = createHandleActions({
   ...naming.reducers,
   ...namingExamples.reducers,
   ...notifications.reducers,
+  ...plex.reducers,
   ...qualityDefinitions.reducers,
   ...qualityProfiles.reducers,
   ...releaseProfiles.reducers,

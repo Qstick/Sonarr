@@ -17,6 +17,7 @@ import NumberInput from './NumberInput';
 import OAuthInputConnector from './OAuthInputConnector';
 import PasswordInput from './PasswordInput';
 import PathInputConnector from './PathInputConnector';
+import PlexMachineInputConnector from './PlexMachineInputConnector';
 import QualityProfileSelectInputConnector from './QualityProfileSelectInputConnector';
 import RootFolderSelectInputConnector from './RootFolderSelectInputConnector';
 import SeriesTypeSelectInput from './SeriesTypeSelectInput';
@@ -59,6 +60,9 @@ function getComponent(type) {
 
     case inputTypes.PATH:
       return PathInputConnector;
+
+    case inputTypes.PLEX_MACHINE_SELECT:
+      return PlexMachineInputConnector;
 
     case inputTypes.QUALITY_PROFILE_SELECT:
       return QualityProfileSelectInputConnector;

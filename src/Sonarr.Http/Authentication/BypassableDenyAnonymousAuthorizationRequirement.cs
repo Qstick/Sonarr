@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization.Infrastructure;
 
-namespace NzbDrone.Http.Authentication
+namespace Sonarr.Http.Authentication
 {
     public class BypassableDenyAnonymousAuthorizationRequirement : DenyAnonymousAuthorizationRequirement
     {
